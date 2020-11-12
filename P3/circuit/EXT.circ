@@ -54,6 +54,15 @@
     <a name="clabel" val=""/>
     <a name="clabelup" val="east"/>
     <a name="clabelfont" val="SansSerif plain 12"/>
+    <appear>
+      <polygon fill="none" points="50,60 50,80 90,100 90,40" stroke="#000000"/>
+      <text font-family="SansSerif" font-size="12" text-anchor="middle" x="70" y="74">EXT</text>
+      <text font-family="SansSerif" font-size="6" text-anchor="middle" x="73" y="60">ext_signed</text>
+      <circ-port height="8" pin="190,300" width="8" x="46" y="66"/>
+      <circ-port height="10" pin="370,310" width="10" x="85" y="65"/>
+      <circ-port height="8" pin="220,240" width="8" x="66" y="46"/>
+      <circ-anchor facing="east" height="6" width="6" x="87" y="67"/>
+    </appear>
     <wire from="(310,310)" to="(370,310)"/>
     <wire from="(290,170)" to="(290,180)"/>
     <wire from="(290,140)" to="(290,150)"/>
@@ -70,38 +79,35 @@
     <wire from="(290,260)" to="(290,270)"/>
     <wire from="(290,270)" to="(290,280)"/>
     <wire from="(290,280)" to="(290,290)"/>
-    <wire from="(220,230)" to="(220,260)"/>
-    <wire from="(260,270)" to="(290,270)"/>
+    <wire from="(220,240)" to="(220,270)"/>
+    <wire from="(260,280)" to="(290,280)"/>
     <wire from="(190,300)" to="(210,300)"/>
     <wire from="(210,300)" to="(290,300)"/>
-    <wire from="(220,260)" to="(230,260)"/>
-    <comp lib="0" loc="(220,230)" name="Pin">
-      <a name="facing" val="south"/>
-      <a name="tristate" val="false"/>
-      <a name="label" val="Signed"/>
+    <wire from="(220,270)" to="(230,270)"/>
+    <comp lib="0" loc="(210,300)" name="Splitter">
+      <a name="fanout" val="1"/>
+      <a name="incoming" val="16"/>
+      <a name="bit0" val="none"/>
+      <a name="bit1" val="none"/>
+      <a name="bit2" val="none"/>
+      <a name="bit3" val="none"/>
+      <a name="bit4" val="none"/>
+      <a name="bit5" val="none"/>
+      <a name="bit6" val="none"/>
+      <a name="bit7" val="none"/>
+      <a name="bit8" val="none"/>
+      <a name="bit9" val="none"/>
+      <a name="bit10" val="none"/>
+      <a name="bit11" val="none"/>
+      <a name="bit12" val="none"/>
+      <a name="bit13" val="none"/>
+      <a name="bit14" val="none"/>
+      <a name="bit15" val="0"/>
     </comp>
     <comp lib="0" loc="(190,300)" name="Pin">
       <a name="width" val="16"/>
       <a name="tristate" val="false"/>
       <a name="label" val="Src"/>
-    </comp>
-    <comp lib="0" loc="(210,300)" name="Splitter">
-      <a name="incoming" val="16"/>
-      <a name="bit0" val="1"/>
-      <a name="bit2" val="1"/>
-      <a name="bit3" val="1"/>
-      <a name="bit4" val="1"/>
-      <a name="bit5" val="1"/>
-      <a name="bit6" val="1"/>
-      <a name="bit7" val="1"/>
-      <a name="bit8" val="1"/>
-      <a name="bit9" val="1"/>
-      <a name="bit10" val="1"/>
-      <a name="bit11" val="1"/>
-      <a name="bit12" val="1"/>
-      <a name="bit13" val="1"/>
-      <a name="bit14" val="1"/>
-      <a name="bit15" val="0"/>
     </comp>
     <comp lib="0" loc="(310,310)" name="Splitter">
       <a name="facing" val="west"/>
@@ -141,15 +147,20 @@
       <a name="bit30" val="1"/>
       <a name="bit31" val="0"/>
     </comp>
-    <comp lib="1" loc="(260,270)" name="AND Gate">
-      <a name="size" val="30"/>
-      <a name="inputs" val="2"/>
-    </comp>
     <comp lib="0" loc="(370,310)" name="Pin">
       <a name="facing" val="west"/>
       <a name="output" val="true"/>
       <a name="width" val="32"/>
       <a name="labelloc" val="east"/>
+    </comp>
+    <comp lib="1" loc="(260,280)" name="AND Gate">
+      <a name="size" val="30"/>
+      <a name="inputs" val="2"/>
+    </comp>
+    <comp lib="0" loc="(220,240)" name="Pin">
+      <a name="facing" val="south"/>
+      <a name="tristate" val="false"/>
+      <a name="label" val="Signed"/>
     </comp>
   </circuit>
 </project>
