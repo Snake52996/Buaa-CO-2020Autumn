@@ -79,8 +79,8 @@
       <circ-anchor facing="east" height="6" width="6" x="147" y="67"/>
     </appear>
     <wire from="(280,540)" to="(340,540)"/>
+    <wire from="(280,250)" to="(280,480)"/>
     <wire from="(520,480)" to="(570,480)"/>
-    <wire from="(280,180)" to="(280,480)"/>
     <wire from="(340,500)" to="(340,540)"/>
     <wire from="(230,430)" to="(240,430)"/>
     <wire from="(450,520)" to="(450,600)"/>
@@ -89,29 +89,20 @@
     <wire from="(470,520)" to="(470,550)"/>
     <wire from="(490,520)" to="(490,550)"/>
     <wire from="(340,500)" to="(380,500)"/>
-    <comp lib="0" loc="(280,180)" name="Splitter">
-      <a name="facing" val="west"/>
-      <a name="fanout" val="5"/>
-      <a name="incoming" val="5"/>
-      <a name="appear" val="right"/>
-    </comp>
     <comp lib="0" loc="(470,550)" name="Pin">
       <a name="facing" val="north"/>
       <a name="tristate" val="false"/>
       <a name="label" val="L"/>
       <a name="labelloc" val="south"/>
     </comp>
-    <comp lib="0" loc="(280,540)" name="Pin">
-      <a name="width" val="32"/>
-      <a name="tristate" val="false"/>
-      <a name="label" val="Data"/>
+    <comp lib="0" loc="(240,430)" name="Splitter">
+      <a name="fanout" val="32"/>
+      <a name="incoming" val="32"/>
     </comp>
-    <comp lib="0" loc="(570,480)" name="Pin">
-      <a name="facing" val="west"/>
-      <a name="output" val="true"/>
-      <a name="width" val="32"/>
-      <a name="label" val="Output"/>
-      <a name="labelloc" val="east"/>
+    <comp lib="4" loc="(520,480)" name="RAM">
+      <a name="addrWidth" val="12"/>
+      <a name="dataWidth" val="32"/>
+      <a name="bus" val="separate"/>
     </comp>
     <comp lib="0" loc="(230,430)" name="Pin">
       <a name="width" val="32"/>
@@ -124,19 +115,28 @@
       <a name="label" val="C"/>
       <a name="labelloc" val="south"/>
     </comp>
-    <comp lib="4" loc="(520,480)" name="RAM">
-      <a name="addrWidth" val="5"/>
-      <a name="dataWidth" val="32"/>
-      <a name="bus" val="separate"/>
-    </comp>
-    <comp lib="0" loc="(240,430)" name="Splitter">
-      <a name="fanout" val="32"/>
-      <a name="incoming" val="32"/>
+    <comp lib="0" loc="(280,250)" name="Splitter">
+      <a name="facing" val="west"/>
+      <a name="fanout" val="12"/>
+      <a name="incoming" val="12"/>
+      <a name="appear" val="right"/>
     </comp>
     <comp lib="0" loc="(450,600)" name="Pin">
       <a name="facing" val="north"/>
       <a name="tristate" val="false"/>
       <a name="label" val="Clock"/>
+    </comp>
+    <comp lib="0" loc="(280,540)" name="Pin">
+      <a name="width" val="32"/>
+      <a name="tristate" val="false"/>
+      <a name="label" val="Data"/>
+    </comp>
+    <comp lib="0" loc="(570,480)" name="Pin">
+      <a name="facing" val="west"/>
+      <a name="output" val="true"/>
+      <a name="width" val="32"/>
+      <a name="label" val="Output"/>
+      <a name="labelloc" val="east"/>
     </comp>
     <comp lib="0" loc="(410,550)" name="Pin">
       <a name="facing" val="north"/>
