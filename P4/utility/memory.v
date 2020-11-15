@@ -1,6 +1,7 @@
 `timescale 1ns / 1ps
-parameter DATA_SIZE=32, WORDS=1024;
+
 module memory(addr, input_data, read_en, write_en, clk, reset, output_data);
+parameter DATA_SIZE=32, WORDS=1024;
 input[$clog2(WORDS)+1:2] addr;
 input[DATA_SIZE-1:0] input_data;
 input read_en;

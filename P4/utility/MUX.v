@@ -1,11 +1,11 @@
 `timescale 1ns / 1ps
-parameter DATA_SIZE = 32;
 module MUX2(
 	input[DATA_SIZE-1: 0] in1,
 	input[DATA_SIZE-1: 0] in2,
 	input select,
 	output[DATA_SIZE-1: 0] out
 );
+parameter DATA_SIZE = 32;
 	assign out = (select === 0) ? (in1) :
 				 (select === 1) ? (in2) : 0;
 endmodule
@@ -16,6 +16,7 @@ module MUX3(
 	input[1:0] select,
 	output[DATA_SIZE-1: 0] out
 );
+parameter DATA_SIZE = 32;
 	assign out = (select === 0) ? (in1) :
 				 (select === 1) ? (in2) :
 				 (select === 2) ? (in3) : 0;
@@ -28,6 +29,7 @@ module MUX4(
 	input[1:0] select,
 	output[DATA_SIZE-1: 0] out
 );
+parameter DATA_SIZE = 32;
 	assign out = (select === 0) ? (in1) :
 				 (select === 1) ? (in2) :
 				 (select === 2) ? (in3) :
@@ -42,6 +44,7 @@ module MUX5(
 	input[2:0] select,
 	output[DATA_SIZE-1: 0] out
 );
+parameter DATA_SIZE = 32;
 	assign out = (select === 0) ? (in1) :
 				 (select === 1) ? (in2) :
 				 (select === 2) ? (in3) :
@@ -58,6 +61,7 @@ module MUX6(
 	input[2:0] select,
 	output[DATA_SIZE-1: 0] out
 );
+parameter DATA_SIZE = 32;
 	assign out = (select === 0) ? (in1) :
 				 (select === 1) ? (in2) :
 				 (select === 2) ? (in3) :
@@ -76,6 +80,7 @@ module MUX7(
 	input[2:0] select,
 	output[DATA_SIZE-1: 0] out
 );
+parameter DATA_SIZE = 32;
 	assign out = (select === 0) ? (in1) :
 				 (select === 1) ? (in2) :
 				 (select === 2) ? (in3) :
@@ -96,6 +101,7 @@ module MUX8(
 	input[2:0] select,
 	output[DATA_SIZE-1: 0] out
 );
+parameter DATA_SIZE = 32;
 	assign out = (select === 0) ? (in1) :
 				 (select === 1) ? (in2) :
 				 (select === 2) ? (in3) :
@@ -118,6 +124,7 @@ module MUX9(
 	input[3:0] select,
 	output[DATA_SIZE-1: 0] out
 );
+parameter DATA_SIZE = 32;
 	assign out = (select === 0) ? (in1) :
 				 (select === 1) ? (in2) :
 				 (select === 2) ? (in3) :
@@ -142,6 +149,7 @@ module MUX10(
 	input[3:0] select,
 	output[DATA_SIZE-1: 0] out
 );
+parameter DATA_SIZE = 32;
 	assign out = (select === 0) ? (in1) :
 				 (select === 1) ? (in2) :
 				 (select === 2) ? (in3) :

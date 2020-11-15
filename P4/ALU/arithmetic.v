@@ -7,7 +7,7 @@ output [31:0] S;
 output overflow;
 wire[31:0] real_B;
 wire[31:0] add_sub_S;
-MUX2 negMux(.in1(B), .in2(~B+1), .select(ctrl), .out(real_B));
-adder adder(.A(A), .B(real_B), .S(add_sub_S), .overflow(overflow));
+MUX2#(32)real_B_MUX(.in1(B), .in2(~B+1), .select(ctrl), .out(real_B));
+adder#(32)adder(.A(A), .B(real_B), .S(add_sub_S), .overflow(overflow));
 assign S = add_sub_S;
 endmodule

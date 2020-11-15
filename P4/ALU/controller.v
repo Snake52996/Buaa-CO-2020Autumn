@@ -36,7 +36,7 @@ output s_ctrl;
 	wire ssub;
 	wire sor;
 	wire ssll;
-	controllerAnd(.ctrl(ctrl), .sadd(sadd), .ssub(ssub), .sor(sor), .ssll(ssll));
-	controllerOr(.sadd(sadd), .ssub(ssub), .sor(sor), .ssll(ssll),
+	controllerAnd controllerAnd(.ctrl(ctrl), .sadd(sadd), .ssub(ssub), .sor(sor), .ssll(ssll));
+	controllerOr controllerOr(.sadd(sadd), .ssub(ssub), .sor(sor), .ssll(ssll),
 				 .result_select(result_select), .neg_b(neg_b), .l_ctrl(l_ctrl), .s_ctrl(s_ctrl));
 endmodule

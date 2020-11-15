@@ -1,6 +1,7 @@
 `timescale 1ns / 1ps
-parameter DATA_SIZE = 32;
+
 module adder(A, B, S, overflow);
+parameter DATA_SIZE = 32;
 input[DATA_SIZE-1:0] A;
 input[DATA_SIZE-1:0] B;
 output[DATA_SIZE-1:0] S;
