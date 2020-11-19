@@ -19,10 +19,8 @@ enum EXIT_STATUS{
 };
 const regex REGISTER_LINE("^\\s*@(0x)?([0-9a-fA-F]{8})\\s*:\\s*\\$\\s*([0-9]+)\\s*<=\\s*(0x)?([0-9a-fA-F]{8})\\s*$");
 const regex MEMORY_LINE("^\\s*@(0x)?([0-9a-fA-F]{8})\\s*:\\s*\\*\\s*(0x)?([0-9a-fA-F]{8})\\s*<=\\s*(0x)?([0-9a-fA-F]{8})\\s*$");
-inline const string& getCommandName(char* command){
-	static string command_name;
-	if(!command_name.size()) command_name = filesystem::path(command).stem().string();
-	return command_name;
+inline const string getFileName(char* path){
+	return filesystem::path(path).stem().string();
 }
 void safeForNow(){
 	printf("\e[32;1mAC\e[0m  You have passed this test case.\n");
@@ -32,9 +30,10 @@ void safeForNow(){
 	exit(EXIT_STATUS::OK);
 }
 void throwIllegalArgument(char* command){
-	printf("\e[36;1;4mUsage\e[0m: %s output answer\n", getCommandName(command).c_str());
+	printf("\e[36;1;4mUsage\e[0m: %s output answer [test_case_name]\n", getFileName(command).c_str());
 	printf("\toutput\t-- The file which contains output from your CPU\n");
 	printf("\tanswer\t-- The file which contains standard output\n");
+	printf("\test_case_name\t-- The path of current test case file\n");
 	printf("\e[36;1;4mNOTE\e[0m\n");
 	printf("\tAny assignment to register 0 will be ignored.\n");
 	printf("\tAny blank character between or after any element(i.e. @, PC value,\n");
@@ -137,11 +136,12 @@ int main(int argc, char** argv){
 		"My pleasure to see you."
 	};
 	constexpr int sentences_count = 3;
-	if(argc != 3) throwIllegalArgument(argv[0]);
+	if(argc != 3 && argc != 4) throwIllegalArgument(argv[0]);
 	ifstream output(argv[1]);
 	ifstream answer(argv[2]);
 	if(!output.is_open()) throwFileNotFound(argv[1]);
 	if(!answer.is_open()) throwFileNotFound(argv[2]);
+	if(argc == 4) printf("Now at test case \e[1m%s\e[0m\n", getFileName(argv[3]).c_str());
 	printf("%s\n", sentences[rand() % sentences_count]);
 	compare(output, answer);
 	safeForNow();
