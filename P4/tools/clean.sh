@@ -1,2 +1,2 @@
-rm ac of mips.tcl
+rm ac of
 rm -rd Environment
