@@ -2,7 +2,7 @@
  * File: Utility.Register.v
  * Register with clk/reset/enable
 */
-module Register#(DATA_SIZE)(
+module Register#(DATA_SIZE,INITIAL_VALUE)(
     input[DATA_SIZE-1:0]        D,
     input                       clk,
     input                       reset,
@@ -11,7 +11,7 @@ module Register#(DATA_SIZE)(
 );
     always@(posedge clk)begin
         if(reset)begin
-            Q <= DATA_SIZE'd0;
+            Q <= INITIAL_VALUE;
         end else begin
             if(enable)begin
                 Q <= D;

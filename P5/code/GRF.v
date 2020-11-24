@@ -12,7 +12,7 @@ module GRF (
     input[31:0]     write_value,
     input           write_enable,
     output[31:0]    read_value_1,
-    output[31:0]    read_value_2,
+    output[31:0]    read_value_2
 );
     reg[31:0] general_registers[0:31];
     reg[6:0] reset_helper;
@@ -27,7 +27,7 @@ module GRF (
     always@(posedge clk)begin
         if(reset)begin
             for(reset_helper = 6'd0; reset_helper < 6'd32; reset_helper = reset_helper + 6'd1)begin
-                general_registers[reset_helper] <= 32'd0;
+                general_registers[reset_helper[4:0]] <= 32'd0;
             end
         end else begin
             if(write_enable && (write_addr !== 5'd0))begin

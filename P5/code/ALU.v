@@ -2,6 +2,20 @@
  * File: ALU.v
  * Arithmetic and Logic Unit
 */
+/*
+    ctrl reference:
+        0000 -- add
+        0001 -- sub
+        0010 -- and
+        0011 -- or
+        0100 -- nor
+        0101 -- xor
+        0110 -- sll
+        0111 -- sra
+        1000 -- srl
+        1001 -- ltu
+        1010 -- lt
+*/
 module ALU (
     input[31:0]         A,
     input[31:0]         B,
