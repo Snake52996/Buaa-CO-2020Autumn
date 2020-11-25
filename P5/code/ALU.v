@@ -38,7 +38,7 @@ module ALU (
         .logic_ctrl(logic_ctrl), .shift_ctrl(shift_ctrl),
         .comparer_signed_compare(comparer_signed_compare),
         .comparer_compare_select(comparer_compare_select), .ALU_S_select(ALU_S_select)
-    )
+    );
     Arithmetic arithmetic(
         .A(A), .B(B), .negative(arithmetic_negative),
         .S(Arithmetic_result), .overflow(overflow)

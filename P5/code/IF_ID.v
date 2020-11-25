@@ -13,12 +13,14 @@ module IF_ID (
     output[31:0]    PC4_out,
     output[31:0]    PC_out
 );
+    // Registers for next pipeline state
     Register#(32,0)IF_ID_Inst(
         .D(Inst_in), .clk(clk), .reset(reset), .enable(enable), .Q(Inst_out)
     );
     Register#(32,0)IF_ID_PC4(
         .D(PC4_in), .clk(clk), .reset(reset), .enable(enable), .Q(PC4_out)
     );
+    // Registers for debug only
     Register#(32,0)IF_ID_PC(
         .D(PC_in), .clk(clk), .reset(reset), .enable(enable), .Q(PC_out)
     );

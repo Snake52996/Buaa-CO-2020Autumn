@@ -2,7 +2,7 @@
  * File: Execution.CTRL.v
  * Pipeline::EX::Controller
 */
-`include "Utility.macro.v"
+`include "Utility.macros.v"
 module EX_CTRL(
     input[31:0]     Inst,
     output          ALU_A_select,

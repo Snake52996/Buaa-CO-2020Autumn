@@ -2,17 +2,27 @@
  * File: InstructionDecode.CTRL.v
  * Pipeline::ID::Controller
 */
-`include "Utility.macro.v"
+`include "Utility.macros.v"
 module ID_CTRL(
     input[31:0]     Inst,
+    output          GRF_addr_2_select,
     output[1:0]     DO_ID_select,
     output          comp_B_select,
     output          comp_signed_compare,
     output[2:0]     comp_compare_select,
     output          ext_signed_extend,
     output          npc_addr_select,
-    output          npc_ctrl
+    output          npc_ctrl,
+    output          branch_instruction
 );
+    assign GRF_addr_2_select = (
+        (Inst[`opcode] === 6'b000001 && Inst[`rt] === 5'b00000) ||  // bltz
+        (Inst[`opcode] === 6'b000001 && Inst[`rt] === 5'b10000) ||  // bltzal
+        (Inst[`opcode] === 6'b000001 && Inst[`rt] === 5'b00001) ||  // bgez
+        (Inst[`opcode] === 6'b000001 && Inst[`rt] === 5'b10001) ||  // bgezal
+        (Inst[`opcode] === 6'b000110) ||                            // blez
+        (Inst[`opcode] === 6'b000111)                               // bgtz
+    );
     assign DO_ID_select =
         (
             (Inst[`opcode] === 6'b000001 && Inst[`rt] === 5'b10001) ||  // bgezal
@@ -79,5 +89,16 @@ module ID_CTRL(
     assign npc_ctrl = ~(
         Inst[`opcode] === 6'b000001 ||  // j
         Inst[`opcode] === 6'b000011     // jal
+    );
+    assign branch_instruction = (
+        (Inst[`opcode] === 6'b000100) ||                                // beq
+        (Inst[`opcode] === 6'b000001) ||                                // bge/ltz
+        (Inst[`opcode] === 6'b000111) ||                                // bgtz
+        (Inst[`opcode] === 6'b000110) ||                                // blez
+        (Inst[`opcode] === 6'b000101) ||                                // bne
+        (Inst[`opcode] === 6'b000001) ||                                // j
+        (Inst[`opcode] === 6'b000011) ||                                // jal
+        (Inst[`opcode] === 6'b000000 && Inst[`funct] === 6'b001000) ||  // jr
+        (Inst[`opcode] === 6'b000000 && Inst[`funct] === 6'b001001)     // jalr
     );
 endmodule

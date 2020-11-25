@@ -2,7 +2,7 @@
  * File: Utility.Register.v
  * Register with clk/reset/enable
 */
-module Register#(DATA_SIZE,INITIAL_VALUE)(
+module Register#(DATA_SIZE=32,INITIAL_VALUE=0)(
     input[DATA_SIZE-1:0]        D,
     input                       clk,
     input                       reset,

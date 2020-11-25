@@ -2,7 +2,7 @@
  * File: Utility.EXT.v
  * extender with configurable data width
 */
-module EXT#(ORIGIN_SIZE, TARGET_SIZE)(
+module EXT#(ORIGIN_SIZE=16,TARGET_SIZE=32)(
     input[ORIGIN_SIZE-1:0]      origin,
     input                       sign,
     output[TARGET_SIZE-1:0]     target

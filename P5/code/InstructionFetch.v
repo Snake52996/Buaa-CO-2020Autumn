@@ -8,18 +8,20 @@ module InstructionFetch(
     input           PC_jump_select,
     input           clk,
     input           reset,
-    output[31:0]    PC,         // JUST FOR OUTPUT
+    output[31:0]    PC,                 // JUST FOR OUTPUT
     output[31:0]    PC4,
     output[31:0]    Inst
 );
-    wire[31:0] current_PC;
     wire[31:0] next_PC;
-    Register#(32,12288)_PC(
-        .D(next_PC), .clk(clk), .reset(reset), .enable(PC_enable), Q(current_PC)
+    Register#(32,12288)IF_PC(
+        .D(next_PC), .clk(clk), .reset(reset), .enable(PC_enable), .Q(PC)
     );
-    Adder _PC4(.A(current_PC), .B(32'd4), .S(PC4));
+    Adder _PC4(.A(PC), .B(32'd4), .S(PC4));
     MUX2#(32)PC_jump_MUX(
         .in1(PC4), .in2(jump_addr),
         .select(PC_jump_select), .out(next_PC)
-    )
+    );
+	IM instruction_memory(
+		.PC(PC), .Inst(Inst)
+	);
 endmodule

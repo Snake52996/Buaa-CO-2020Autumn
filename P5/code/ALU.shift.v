@@ -8,9 +8,10 @@ module Shift (
     input[1:0]      ctrl,
     output[31:0]    S
 );
-    wire[4:0] w = B[4:0];
-    MUX#(32)Shift_S_MUX(
-        .in1(A << w), .in2($signed($signed(A) >>> w)), .in3(A >> w),
+    wire[31:0] w = {{27{1'b0}}, B[4:0]};
+    wire signed[31:0] sA = A;
+    MUX3#(32)Shift_S_MUX(
+        .in1(A << w), .in2(sA >>> w), .in3(A >> w),
         .select(ctrl), .out(S)
     );
 endmodule

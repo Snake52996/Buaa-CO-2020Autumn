@@ -1,13 +1,16 @@
 /*
- * File: WriteBack.CTRL.v
- * Pipeline::WB::Controller
+ * File: GRFWriteEnableDecoder.v
+ * Decoder for decoding the instruction to determine if data shall be written to GRF
+ * This module is packed to avoid code duplication, since the same function is invoked
+ * in WB state and in top level(logically in EX state).
+ * It is definitely possible to decode in EX state and pipe result till WB state which
+ * fulfills all requirements, for explanation on the reason why such designment is
+ * not applied, refer to GRFWriteAddressDecoder.v
 */
-`include "Utility.macros.v";
-module WB_CTRL(
-    input[31:0]     Inst,
-    output          GRF_write_enable,
-    output[1:0]     GRF_write_addr_select,
-    output          GRF_write_data_select
+`include "Utility.macros.v"
+module GRFWriteEnableDecoder(
+    input[31:0] Inst,
+    output      GRF_write_enable
 );
     assign GRF_write_enable = ~(    // list only non-GRF-writing instructions here
         (Inst[`opcode] === 6'b101011) |                             // sw
@@ -19,13 +22,4 @@ module WB_CTRL(
         (Inst[`opcode] === 6'b000010) |                             // j
         (Inst[`opcode] === 6'b000000 & Inst[`funct] === 6'b001000)  // jr
     );
-    assign GRF_write_addr_select =
-        (
-            (Inst[`opcode] === 6'b000001 & Inst[20]) |              // bgezal/bltzal
-            (Inst[`opcode] === 6'b000011)                           // jal
-        ) ? 2'b10 :
-        (
-            (Inst[`opcode] !== 6'b000000)                           // non-R-type
-        ) ? 2'b01 : 2'b00;
-    assign GRF_write_data_select = (Inst[`opcode] === 6'b100011);
 endmodule

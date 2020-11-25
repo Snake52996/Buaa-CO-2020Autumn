@@ -18,6 +18,6 @@ module SelectiveComparer (
     );
     MUX7#(1)temp_result_MUX(
         .in1(ne), .in2(lt), .in3(le), .in4(eq), .in5(ge), .in6(gt), .in7(t),
-        .select(result_select), .out(temp_result)
+        .select(compare_select), .out(temp_result)
     );
 endmodule
