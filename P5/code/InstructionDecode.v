@@ -26,6 +26,7 @@ module InstructionDecode(
     wire[31:0] NPC_addr;
     wire[31:0] sll16_result;
     wire[31:0] comp_result;
+    wire[31:0] real_offset;
     // wires for controller signals
     wire        GRF_addr_2_select;
     wire[1:0]   DO_ID_select;
@@ -61,11 +62,12 @@ module InstructionDecode(
     EXT#(16,32)ext(
         .origin(Inst[`immediate]), .sign(ext_signed_extend), .target(ext_result)
     );
+    SLLN#(32,2)SLL2(.origin(ext_result), .result(real_offset));
     Adder link_adder(
         .A(PC4), .B(32'd4), .S(link_target) /*No need for overflow*/
     );
     Adder offset_adder(
-        .A(PC4), .B(ext_result), .S(offset_target) /*No need for overflow*/
+        .A(PC4), .B(real_offset), .S(offset_target) /*No need for overflow*/
     );
     MUX2#(32)NPC_addr_MUX(
         .in1(offset_target), .in2(GRF_data_1), .select(npc_addr_select), .out(NPC_addr)

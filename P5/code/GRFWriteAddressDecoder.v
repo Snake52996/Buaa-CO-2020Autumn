@@ -3,8 +3,8 @@
  * Decoder for decoding the instruction to determine to which address of GRF the
  * result shall be written
  * This module is packed to avoid code duplication, since the same function is invoked
- * in WB state and in top level(logically in EX state).
- * It is definitely possible to decode in EX state and pipe result till WB state which
+ * in WB state and in top level(logically in ID state).
+ * It is definitely possible to decode in ID state and pipe result till WB state which
  * fulfills both the requirement to forward data in case needed and to write data to
  * proper register in GRF in WB state, yet such designment violates the principle of a
  * "transparent forwarding", therefore it is not applied.

@@ -72,6 +72,7 @@ module ID_CTRL(
                                 // the default result of the selective comparer shall be set to `true`
     assign ext_signed_extend = (
         Inst[`opcode] === 6'b001001 ||  // addiu
+        Inst[`opcode] === 6'b001000 ||  // addi
         Inst[`opcode] === 6'b000100 ||  // beq
         Inst[`opcode] === 6'b000001 ||  // bgez/bgezal/bltz/bltzal
         Inst[`opcode] === 6'b000111 ||  // bgtz
@@ -87,8 +88,8 @@ module ID_CTRL(
         (Inst[`opcode] === 6'b000000 && Inst[`funct] === 6'b001001)     // jalr
     );
     assign npc_ctrl = ~(
-        Inst[`opcode] === 6'b000001 ||  // j
-        Inst[`opcode] === 6'b000011     // jal
+        Inst[`opcode] == 6'b000010 ||  // j
+        Inst[`opcode] == 6'b000011     // jal
     );
     assign branch_instruction = (
         (Inst[`opcode] === 6'b000100) ||                                // beq
@@ -96,7 +97,7 @@ module ID_CTRL(
         (Inst[`opcode] === 6'b000111) ||                                // bgtz
         (Inst[`opcode] === 6'b000110) ||                                // blez
         (Inst[`opcode] === 6'b000101) ||                                // bne
-        (Inst[`opcode] === 6'b000001) ||                                // j
+        (Inst[`opcode] === 6'b000010) ||                                // j
         (Inst[`opcode] === 6'b000011) ||                                // jal
         (Inst[`opcode] === 6'b000000 && Inst[`funct] === 6'b001000) ||  // jr
         (Inst[`opcode] === 6'b000000 && Inst[`funct] === 6'b001001)     // jalr

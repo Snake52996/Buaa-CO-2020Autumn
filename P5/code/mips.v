@@ -198,7 +198,7 @@ module mips(
             (~ID_slt_rs_pause)
         )
     );
-    assign ID_EX_I_T_new = ID_T_new & {2{ID_EX_I_DO_reliable}};
+    assign ID_EX_I_T_new = (ID_EX_I_DO_reliable === 1'b1) ? 2'b00 : ID_T_new;
     // To avoid unwanted forwarding, set piped rd_addr to 0 if instruction
     //  won't modify GRF.
     assign ID_EX_I_rd_addr = ID_GRF_write_addr & {5{ID_GRF_write_enable}};
@@ -217,6 +217,9 @@ module mips(
                 ((ID_EX_O_rd_addr === ID_O_rt_addr) & (ID_RT_T_use < ID_EX_O_T_new)) |
                 ((EX_MEM_O_rd_addr === ID_O_rt_addr) & (ID_RT_T_use < EX_MEM_O_T_new))
             )
+        ) | (
+            // For debugging convenience, freeze processor on syscall instructions
+            (ID_I_Instruction[`opcode] === 6'b000000) & (ID_I_Instruction[`funct] === 6'b001100)
         )
     );
 
@@ -295,7 +298,7 @@ module mips(
     ) ? 2'b01 :
     (
         (ID_EX_O_rs_addr !== 5'b00000) &
-        (WB_O_GRF_write_addr === ID_EX_O_rs_addr)
+        (GRF_write_addr === ID_EX_O_rs_addr)
     ) ? 2'b10 : 2'b00;
     assign EX_rt_select =
     (
@@ -305,7 +308,7 @@ module mips(
     ) ? 2'b01 :
     (
         (ID_EX_O_rt_addr !== 5'b00000) &
-        (WB_O_GRF_write_addr === ID_EX_O_rt_addr)
+        (GRF_write_addr === ID_EX_O_rt_addr)
     ) ? 2'b10 : 2'b00;
     // ^^^^^^^^^^^^^^^^^^^^^^^^^ END OF EX STATE ^^^^^^^^^^^^^^^^^^^^^^^^^
 //*/
@@ -333,7 +336,7 @@ module mips(
     );
     assign MEM_rt_select = (
         (EX_MEM_O_rt_addr !== 5'b00000) &
-        (WB_O_GRF_write_addr === EX_MEM_O_rt_addr)
+        (GRF_write_addr === EX_MEM_O_rt_addr)
     );
     // ^^^^^^^^^^^^^^^^^^^^^^^^^ END OF MEM STATE ^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -351,17 +354,21 @@ module mips(
         .GRF_write_data(WB_O_GRF_write_data)
     );
 	assign GRF_write_data = WB_O_GRF_write_data;
-    assign GRF_write_addr = WB_O_GRF_write_addr;
+    assign GRF_write_addr = WB_O_GRF_write_addr & {5{WB_O_GRF_write_enable}};
     assign GRF_write_enable = WB_O_GRF_write_enable;
     // ^^^^^^^^^^^^^^^^^^^^^^^^^ END OF WB STATE ^^^^^^^^^^^^^^^^^^^^^^^^^
 
     always@(posedge clk)begin
         // watch signals and output for debugging
-        if(WB_O_GRF_write_enable)begin
-            $display("%d@%h: $%d <= %h", $time, MEM_WB_O_PC, WB_O_GRF_write_addr, WB_O_GRF_write_data);
-        end
-        if(MEM_write_enable)begin
-            $display("%d@%h: *%h <= %h", $time, EX_MEM_O_PC, MEM_I_AO, MEM_I_rt);
+        if(!reset)begin
+            if(WB_O_GRF_write_enable)begin
+                //$display("%d@%h: $%d <= %h", $time, MEM_WB_O_PC, WB_O_GRF_write_addr, WB_O_GRF_write_data);
+                $display("@%h: $%d <= %h", MEM_WB_O_PC, WB_O_GRF_write_addr, WB_O_GRF_write_data);
+            end
+            if(MEM_write_enable)begin
+                //$display("%d@%h: *%h <= %h", $time, EX_MEM_O_PC, MEM_I_AO, MEM_I_rt);
+                $display("@%h: *%h <= %h", EX_MEM_O_PC, MEM_I_AO, MEM_I_rt);
+            end
         end
     end
 endmodule
