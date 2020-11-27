@@ -3,14 +3,13 @@
 using namespace std;
 int main(){
 	constexpr unsigned int BUFFER_SIZE = 128;
-	bool start_sign = false;
 	char buffer[BUFFER_SIZE];
+	cin.ignore(numeric_limits<streamsize>::max(), '@');
 	while(!cin.eof()){
-		if(start_sign || cin.peek() == '@'){
-			start_sign = true;
-			cin.getline(buffer, BUFFER_SIZE);
-			cout<<buffer<<endl;
-		}else cin.ignore(numeric_limits<streamsize>::max(), '\n');
+		cin.unget();
+		cin.getline(buffer, BUFFER_SIZE);
+		cout<<buffer<<endl;
+		cin.ignore(numeric_limits<streamsize>::max(), '@');
 	}
 	return 0;
 }
