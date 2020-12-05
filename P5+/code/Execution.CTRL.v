@@ -64,5 +64,5 @@ module EX_CTRL(
         (
             (special & Inst[`funct] === 6'b101010) |    // slt
             Inst[`opcode] === 6'b001010                 // slti
-        ) ? 4'b1001 : 4'b0000;
+        ) ? 4'b1010 : 4'b0000;
 endmodule
