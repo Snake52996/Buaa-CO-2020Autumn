@@ -12,18 +12,18 @@ module Memory(
     output[31:0]    Inst_out,
     output[31:0]    AO_out,
     output[31:0]    MO,
-    output          memory_write_enable_out // for debugging only
+    output          debug_enable, // for debugging only
+    output[31:0]    debug_data
 );
     // wires for controller signals. Inline the controller since it is simple.
-    wire memory_read_enable  = (Inst[`opcode] === 6'b100011);
-    wire memory_write_enable = (Inst[`opcode] === 6'b101011);
+    wire[2:0] size;
     // assignments to outputs
     assign Inst_out = Inst;
     assign AO_out = AO;
-    assign memory_write_enable_out = memory_write_enable;
+    assign debug_enable = (size !== 0);
     DM data_memory(
         .address(AO), .data_in(rt), .clk(clk), .reset(reset),
-        .read_enable(memory_read_enable), .write_enable(memory_write_enable),
-        .data_out(MO)
+        .size(size), .data_out(MO), .debug_out(debug_data)
     );
+    MEM_CTRL MEM_ctrl(.Inst(Inst), .size(size));
 endmodule

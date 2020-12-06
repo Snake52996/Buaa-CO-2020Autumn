@@ -5,9 +5,12 @@
 `include "Utility.macros.v"
 module EX_CTRL(
     input[31:0]     Inst,
+    input           DO_reliable,
     output          ALU_A_select,
     output[1:0]     ALU_B_select,
-    output[3:0]     ALU_ctrl
+    output[1:0]     AO_select,
+    output[3:0]     ALU_ctrl,
+    output[4:0]     Multiply_ctrl
 );
     wire special = (Inst[`opcode] === 6'b000000);
     wire shift = special & (
@@ -29,6 +32,16 @@ module EX_CTRL(
     assign ALU_B_select = (shift & Inst[2]) ? 2'b01 :
                           (shift & ~Inst[2]) ? 2'b10 :
                           immediate ? 2'b11 : 2'b00;
+    // When handling mfhi/mflo instruction, select AO from multiply;
+    // When DO is reliable, result of ALU is wether meaningless or recalculating of
+    //  the same result. Therefore when reliable, DO is directed directly to AO.
+    assign AO_select = (
+        (special & Inst[`funct] === 6'b010000) |        // mfhi
+        (special & Inst[`funct] === 6'b010010)          // mflo
+    ) ? 2'b10/* from Multiply */ :     
+    (
+        DO_reliable
+    ) ? 2'b01/* from DO */ : 2'b00/* from ALU, as default */;
     assign ALU_ctrl =
         (
             (special & Inst[`funct] === 6'b100001) |    // addu
@@ -65,4 +78,34 @@ module EX_CTRL(
             (special & Inst[`funct] === 6'b101010) |    // slt
             Inst[`opcode] === 6'b001010                 // slti
         ) ? 4'b1010 : 4'b0000;
+    // Available instructions: mult, multu, div, divu, mfhi, mflo, mthi, mtlo
+    //  all of which are R-type instructions. For convenience in generating the signal
+    //  `ctrl`, field funct of each instruction is listed as follows.
+    //   mult -- 011000
+    //  multu -- 011001
+    //    div -- 011010
+    //   divu -- 011011
+    //   mfhi -- 010000
+    //   mflo -- 010010
+    //   mthi -- 010001
+    //   mtlo -- 010011
+    //  When divided into two groups, it is easy to find the regularity:
+    //             Inst[3] -- launch
+    //             Inst[0] -- unsigned
+    //             Inst[1] -- divide
+    //   ~launch & Inst[0] -- move mode
+    //             Inst[1] -- targeting LO
+    wire Multiply_operations = special & (
+        (Inst[`funct] === 011000) |     // mult
+        (Inst[`funct] === 011001) |     // multu
+        (Inst[`funct] === 011010) |     // div
+        (Inst[`funct] === 011011) |     // divu
+        (Inst[`funct] === 010000) |     // mfhi
+        (Inst[`funct] === 010010) |     // mflo
+        (Inst[`funct] === 010001) |     // mthi
+        (Inst[`funct] === 010011)       // mtlo
+    );
+    assign Multiply_ctrl = {5{Multiply_operations}} & {
+        Inst[3], Inst[1], Inst[0], (~Inst[3]) & Inst[0], Inst[1]
+    };
 endmodule
