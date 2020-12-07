@@ -69,6 +69,7 @@ module mips(
     wire[31:0]  EX_O_Instruction;
     wire[31:0]  EX_O_rt;
     wire[31:0]  EX_O_AO;
+    wire        Multiply_busy;
     //  EX/MEM-register variables
     wire[1:0]   EX_MEM_I_T_new;
     wire        EX_MEM_reset;
@@ -155,6 +156,9 @@ module mips(
     wire[1:0]   ID_T_new;
     wire        ID_slt_rs_pause;
     wire        ID_slt_rt_pause;
+    wire        multiply_instruction = (
+                    (ID_I_Instruction[`opcode] === 6'b000000) & (ID_I_Instruction[5:4] === 2'b01)
+                );
     TnewOriginalDecoder T_new_generator(.Inst(ID_I_Instruction), .Tnew(ID_T_new));
     RSTuseDecoder RS_T_use_generator(
         .Inst(ID_I_Instruction), .used(ID_RS_used), .Tuse(ID_RS_T_use)
@@ -220,7 +224,7 @@ module mips(
         ) | (
             // For debugging convenience, freeze processor on syscall instructions
             (ID_I_Instruction[`opcode] === 6'b000000) & (ID_I_Instruction[`funct] === 6'b001100)
-        )
+        ) | (multiply_instruction & Multiply_busy)
     );
 
     // Forward implementation
@@ -276,7 +280,9 @@ module mips(
     Execution EX(
         .Inst(EX_I_Instruction), .rs(EX_I_rs), .rt(EX_I_rt), .immediate(EX_I_immediate),
         .DO(ID_EX_O_DO), .DO_reliable(ID_EX_O_DO_reliable),
-        .Inst_out(EX_O_Instruction), .rt_out(EX_O_rt), .AO(EX_O_AO)
+        .clk(clk), .reset(reset),
+        .Inst_out(EX_O_Instruction), .rt_out(EX_O_rt), .AO(EX_O_AO),
+        .Multiply_busy(Multiply_busy)
     );
     assign EX_MEM_I_T_new = (ID_EX_O_T_new === 2'b00) ? (2'b00) : (ID_EX_O_T_new - 2'b01);
     // Forward implementation
@@ -322,11 +328,13 @@ module mips(
     );
 
     // vvvvvvvvvvvvvvvvvvvvvvvv BEGIN OF MEM STATE vvvvvvvvvvvvvvvvvvvvvvvv
-    wire MEM_write_enable;
+    wire        MEM_write_enable;
+    wire[31:0]  MEM_write_data;
+    wire[31:0]  MEM_write_address = {MEM_I_AO[31:2], 2'b00};
     Memory MEM(
         .Inst(MEM_I_Instruction), .AO(MEM_I_AO), .rt(MEM_I_rt), .clk(clk),
         .reset(reset), .Inst_out(MEM_O_Instruction), .AO_out(MEM_O_AO), .MO(MEM_O_MO),
-        .memory_write_enable_out(MEM_write_enable)
+        .debug_enable(MEM_write_enable), .debug_data(MEM_write_data) /* .unaligned_exception() */
     );
     // Forward implementation
     wire   MEM_rt_select;
@@ -362,12 +370,12 @@ module mips(
         // watch signals and output for debugging
         if(!reset)begin
             if(WB_O_GRF_write_enable)begin
-                //$display("%d@%h: $%d <= %h", $time, MEM_WB_O_PC, WB_O_GRF_write_addr, WB_O_GRF_write_data);
-                $display("@%h: $%d <= %h", MEM_WB_O_PC, WB_O_GRF_write_addr, WB_O_GRF_write_data);
+                $display("%d@%h: $%d <= %h", $time, MEM_WB_O_PC, WB_O_GRF_write_addr, WB_O_GRF_write_data);
+                //$display("@%h: $%d <= %h", MEM_WB_O_PC, WB_O_GRF_write_addr, WB_O_GRF_write_data);
             end
             if(MEM_write_enable)begin
-                //$display("%d@%h: *%h <= %h", $time, EX_MEM_O_PC, MEM_I_AO, MEM_I_rt);
-                $display("@%h: *%h <= %h", EX_MEM_O_PC, MEM_I_AO, MEM_I_rt);
+                $display("%d@%h: *%h <= %h", $time, EX_MEM_O_PC, MEM_write_address, MEM_write_data);
+                //$display("@%h: *%h <= %h", EX_MEM_O_PC, MEM_write_address, MEM_write_data);
             end
         end
     end

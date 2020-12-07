@@ -12,9 +12,9 @@ module TnewOriginalDecoder(
     // generated when entering EX state is separately handled by DO forwarding logic thus
     // in no situation shall Tnew be originally 0 within our consideration. Instructions
     // that do not writes GRF is also handled separately, therefore every instructions,
-    // except lw, has or can be handled as having an original Tnew of value 1.
+    // except loads, has or can be handled as having an original Tnew of value 1.
     assign Tnew =
     (
-        (Inst[`opcode] === 6'b100011)   // lw
+        (Inst[31:29] === 6'b100)   // load instructions
     ) ? 2'b10 : 2'b01;
 endmodule

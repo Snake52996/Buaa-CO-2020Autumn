@@ -52,7 +52,9 @@ module Multiply(
         .S(S)
     );
     always@(posedge clk)begin
-        if(ctrl[4])begin
+        if(reset)begin
+            count_down = 4'd0;
+        end else if(ctrl[4])begin
             if(ctrl[3]) count_down = 4'd10;
             else        count_down = 4'd5;
         end else begin

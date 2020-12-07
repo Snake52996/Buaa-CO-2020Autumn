@@ -23,13 +23,14 @@ module RTTuseDecoder(
         (Inst[`opcode] === 6'b100011) |             // lw
         (Inst[`opcode] === 6'b000011) |             // jal
         (Inst[`opcode] === 6'b000010) |             // j
-        (Inst[`opcode] === 6'b001111)               // lui
+        (Inst[`opcode] === 6'b001111) |             // lui
+        (special & Inst[5:2] === 4'b0100)           // [mf/mt][hi/lo]
     );
     // Generally, rt is used 1 cycle later, yet immediately in branch instructions
-    // and 1 more cycle (i.e. 2 cycles) in sw
+    // and 1 more cycle (i.e. 2 cycles) in store instructions
     assign Tuse =
     (
-        (Inst[`opcode] === 6'b101011)               // sw
+        (Inst[31:29] === 3'b101)                    // store instructions
     ) ? 2'b10 :
     (
         (Inst[`opcode] === 6'b000100) |             // beq

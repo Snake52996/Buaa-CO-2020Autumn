@@ -5,7 +5,9 @@
 `include "Utility.macros.v"
 module MEM_CTRL(
     input[31:0]     Inst,
-    output[2:0]     size
+    input[31:0]     address,
+    output[2:0]     size,
+    output          unaligned
 );
     /*
      * Supporting LB, LBU, LH, LHU, LW, SB, SH, SW.
@@ -24,11 +26,13 @@ module MEM_CTRL(
      *  obviously fields in opcode represent the meanings as follows:
      *   Inst[27:26] -- extra bytes required from the specified address
      *      Inst[29] -- write?
+     * In case the address is not properly aligned, unaligned_exception is activated.
     */
     wire store = (
-        (Inst[`opcode] === 101000) |    // sb
-        (Inst[`opcode] === 101001) |    // sh
-        (Inst[`opcode] === 101011)      // sw
+        (Inst[`opcode] === 6'b101000) |    // sb
+        (Inst[`opcode] === 6'b101001) |    // sh
+        (Inst[`opcode] === 6'b101011)      // sw
     );
     assign size = {3{store}} & (Inst[28:26] + 3'b1);
+    assign unaligned = |(Inst[27:26] & address[1:0]);
 endmodule

@@ -10,12 +10,13 @@ module RSTuseDecoder(
 );
     wire special = (Inst[`opcode] === 6'b000000);
     assign used = ~(
-        (special & Inst[`funct] === 6'b000000) |    // sll
-        (special & Inst[`funct] === 6'b000011) |    // sra
-        (special & Inst[`funct] === 6'b000010) |    // srl
-        (Inst[`opcode] === 6'b000011) |             // jal
-        (Inst[`opcode] === 6'b000010) |             // j
-        (Inst[`opcode] === 6'b001111)               // lui
+        (special & Inst[`funct] === 6'b000000) |        // sll
+        (special & Inst[`funct] === 6'b000011) |        // sra
+        (special & Inst[`funct] === 6'b000010) |        // srl
+        (Inst[`opcode] === 6'b000011) |                 // jal
+        (Inst[`opcode] === 6'b000010) |                 // j
+        (Inst[`opcode] === 6'b001111) |                 // lui
+        (special & Inst[5:2] === 4'b0100 & ~Inst[0])    // mflo/mfhi
     );
     // Most commonly, rs is used after 1 cycle. Branches use it immediately.
     assign Tuse =

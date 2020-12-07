@@ -13,13 +13,15 @@ module GRFWriteEnableDecoder(
     output      GRF_write_enable
 );
     assign GRF_write_enable = ~(    // list only non-GRF-writing instructions here
-        (Inst[`opcode] == 6'b101011) |                             // sw
-        (Inst[`opcode] == 6'b000100) |                             // beq
-        (Inst[`opcode] == 6'b000101) |                             // bne
-        (Inst[`opcode] == 6'b000001 & ~Inst[20]) |                 // bgez/bltz
-        (Inst[`opcode] == 6'b000111) |                             // bgtz
-        (Inst[`opcode] == 6'b000110) |                             // blez
-        (Inst[`opcode] == 6'b000010) |                             // j
-        (Inst[`opcode] == 6'b000000 & Inst[`funct] === 6'b001000)  // jr
+        (Inst[31:29] == 3'b101) |                                           // store
+        (Inst[`opcode] == 6'b000000 & Inst[5:3] == 3'b011) |                // mult/div
+        (Inst[`opcode] == 6'b000000 & Inst[5:2] == 3'b0100 & Inst[0]) |     // mthi/mtlo
+        (Inst[`opcode] == 6'b000100) |                                      // beq
+        (Inst[`opcode] == 6'b000101) |                                      // bne
+        (Inst[`opcode] == 6'b000001 & ~Inst[20]) |                          // bgez/bltz
+        (Inst[`opcode] == 6'b000111) |                                      // bgtz
+        (Inst[`opcode] == 6'b000110) |                                      // blez
+        (Inst[`opcode] == 6'b000010) |                                      // j
+        (Inst[`opcode] == 6'b000000 & Inst[`funct] === 6'b001000)           // jr
     );
 endmodule

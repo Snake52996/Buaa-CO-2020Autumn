@@ -46,8 +46,7 @@ module EX_CTRL(
         (
             (special & Inst[`funct] === 6'b100001) |    // addu
             Inst[`opcode] === 6'b001001 |               // addiu
-            Inst[`opcode] === 6'b100011 |               // lw
-            Inst[`opcode] === 6'b101011                 // sw
+            Inst[31:30] === 2'b10                       // load/store
         ) ? 4'b0000 :
         (
             (special & Inst[`funct] === 6'b100011)      // sub
@@ -96,14 +95,14 @@ module EX_CTRL(
     //   ~launch & Inst[0] -- move mode
     //             Inst[1] -- targeting LO
     wire Multiply_operations = special & (
-        (Inst[`funct] === 011000) |     // mult
-        (Inst[`funct] === 011001) |     // multu
-        (Inst[`funct] === 011010) |     // div
-        (Inst[`funct] === 011011) |     // divu
-        (Inst[`funct] === 010000) |     // mfhi
-        (Inst[`funct] === 010010) |     // mflo
-        (Inst[`funct] === 010001) |     // mthi
-        (Inst[`funct] === 010011)       // mtlo
+        (Inst[`funct] === 6'b011000) |     // mult
+        (Inst[`funct] === 6'b011001) |     // multu
+        (Inst[`funct] === 6'b011010) |     // div
+        (Inst[`funct] === 6'b011011) |     // divu
+        (Inst[`funct] === 6'b010000) |     // mfhi
+        (Inst[`funct] === 6'b010010) |     // mflo
+        (Inst[`funct] === 6'b010001) |     // mthi
+        (Inst[`funct] === 6'b010011)       // mtlo
     );
     assign Multiply_ctrl = {5{Multiply_operations}} & {
         Inst[3], Inst[1], Inst[0], (~Inst[3]) & Inst[0], Inst[1]

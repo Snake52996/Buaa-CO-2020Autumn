@@ -52,8 +52,12 @@ module ID_CTRL(
             Inst[`opcode] === 6'b000101 // bne
         ) ? 3'b000 :
         (
-            (Inst[`opcode] === 6'b000001 && Inst[`rt] === 5'b00000) ||  // bltz
-            (Inst[`opcode] === 6'b000001 && Inst[`rt] === 5'b10000)     // bltzal
+            (Inst[`opcode] === 6'b000001 && Inst[`rt] === 5'b00000) ||      // bltz
+            (Inst[`opcode] === 6'b000001 && Inst[`rt] === 5'b10000) ||      // bltzal
+            (Inst[`opcode] === 6'b000000 && Inst[`funct] === 6'b101011) ||  // sltu
+            Inst[`opcode] === 6'b001011 ||                                  // sltiu
+            Inst[`opcode] === 6'b001010 ||                                  // slti
+            (Inst[`opcode] === 6'b000000 && Inst[`funct] === 6'b101010)     // slt
         ) ? 3'b001 :
         (
             Inst[`opcode] === 6'b000110 // blez
@@ -78,10 +82,9 @@ module ID_CTRL(
         Inst[`opcode] === 6'b000111 ||  // bgtz
         Inst[`opcode] === 6'b000110 ||  // blez
         Inst[`opcode] === 6'b000101 ||  // bne
-        Inst[`opcode] === 6'b100011 ||  // lw
+        Inst[31:30] === 2'b10 ||        // load/store
         Inst[`opcode] === 6'b001010 ||  // slti
-        Inst[`opcode] === 6'b001011 ||  // sltiu
-        Inst[`opcode] === 6'b101011     // sw
+        Inst[`opcode] === 6'b001011     // sltiu
     );
     assign npc_addr_select = (
         (Inst[`opcode] === 6'b000000 && Inst[`funct] === 6'b001000) ||  // jr

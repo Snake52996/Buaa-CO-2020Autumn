@@ -40,7 +40,7 @@ module Execution(
         .select(ALU_B_select), .out(ALU_B)
     );
     MUX3#(32)AO_MUX(
-        .in1(ALU_S), .in2(DO), .in3(Multiply_ctrl),
+        .in1(ALU_S), .in2(DO), .in3(Multiply_S),
         .select(AO_select), .out(AO)
     );
     ALU alu(
@@ -53,6 +53,7 @@ module Execution(
     );
     EX_CTRL EX_ctrl(
         .Inst(Inst), .ALU_A_select(ALU_A_select), .ALU_B_select(ALU_B_select),
-        .AO_select(AO_select), .ALU_ctrl(ALU_ctrl), .Multiply_ctrl(Multiply_ctrl)
+        .AO_select(AO_select), .ALU_ctrl(ALU_ctrl), .Multiply_ctrl(Multiply_ctrl),
+        .DO_reliable(DO_reliable)
     );
 endmodule

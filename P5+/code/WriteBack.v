@@ -29,13 +29,13 @@ module WriteBack(
         .Inst(Inst), .GRF_write_enable(GRF_write_enable)
     );
     EXT#(8,32)byte_ext(
-        .origin(MO[7:0]), .sign(Inst[28]), .target(MO_from_byte)
+        .origin(MO[7:0]), .sign(~Inst[28]), .target(MO_from_byte)
     );
     EXT#(16,32)half_ext(
-        .origin(MO[15:0]), .sign(Inst[28]), .target(MO_from_half)
+        .origin(MO[15:0]), .sign(~Inst[28]), .target(MO_from_half)
     );
-    MUX3#(32)real_MO_MUX(
-        .in1(MO_from_byte), .in2(MO_from_half), .in3(MO_from_word),
+    MUX4#(32)real_MO_MUX(
+        .in1(MO_from_byte), .in2(MO_from_half),  .in3(32'd0), .in4(MO_from_word),
         .select(Inst[27:26]), .out(real_MO)
     );
 endmodule
