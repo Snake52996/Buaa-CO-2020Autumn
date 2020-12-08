@@ -15,6 +15,7 @@ module RTTuseDecoder(
         (special & Inst[`funct] === 6'b001001) |    // jalr
         (special & Inst[`funct] === 6'b001000) |    // jr
         (Inst[`opcode] === 6'b001001) |             // addiu
+        (Inst[`opcode] === 6'b001000) |             // addi
         (Inst[`opcode] === 6'b001100) |             // andi
         (Inst[`opcode] === 6'b001101) |             // ori
         (Inst[`opcode] === 6'b001010) |             // slti

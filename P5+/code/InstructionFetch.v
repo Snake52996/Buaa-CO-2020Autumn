@@ -22,6 +22,6 @@ module InstructionFetch(
         .select(PC_jump_select), .out(next_PC)
     );
 	IM instruction_memory(
-		.PC(PC), .Inst(Inst)
+		.PC(PC - 12288), .Inst(Inst)
 	);
 endmodule

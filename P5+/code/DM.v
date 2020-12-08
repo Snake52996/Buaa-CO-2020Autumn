@@ -19,7 +19,7 @@ module DM#(ADDRESS_WIDTH=10)(
     output[31:0]    debug_out
 );
     reg[7:0]    memory[0:2**ADDRESS_WIDTH-1];
-    reg[13:0]   helper;
+    reg[ADDRESS_WIDTH:0]   helper;
     wire[ADDRESS_WIDTH-1:0]  real_address = address[ADDRESS_WIDTH-1:0];
     wire[ADDRESS_WIDTH-3:0]  aligned_address = real_address[ADDRESS_WIDTH-1:2];
     wire[7:0]   input_bytes[0:3];

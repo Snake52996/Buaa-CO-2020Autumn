@@ -45,12 +45,15 @@ module EX_CTRL(
     assign ALU_ctrl =
         (
             (special & Inst[`funct] === 6'b100001) |    // addu
+            (special & Inst[`funct] === 6'b100000) |    // add
             Inst[`opcode] === 6'b001001 |               // addiu
+            Inst[`opcode] === 6'b001000 |               // addi
             Inst[31:30] === 2'b10                       // load/store
-        ) ? 4'b0000 :
+        ) ? 4'b0000/* add */ :
         (
-            (special & Inst[`funct] === 6'b100011)      // sub
-        ) ? 4'b0001 :
+            (special & Inst[`funct] === 6'b100010) |    // sub
+            (special & Inst[`funct] === 6'b100011)      // subu
+        ) ? 4'b0001/* sub */ :
         (
             (special & Inst[`funct] === 6'b100100) |    // and
             Inst[`opcode] === 6'b001100                 // andi
@@ -76,7 +79,7 @@ module EX_CTRL(
         (
             (special & Inst[`funct] === 6'b101010) |    // slt
             Inst[`opcode] === 6'b001010                 // slti
-        ) ? 4'b1010 : 4'b0000;
+        ) ? 4'b1010 : 4'bxxxx;
     // Available instructions: mult, multu, div, divu, mfhi, mflo, mthi, mtlo
     //  all of which are R-type instructions. For convenience in generating the signal
     //  `ctrl`, field funct of each instruction is listed as follows.
