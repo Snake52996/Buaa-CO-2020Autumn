@@ -12,7 +12,7 @@ module WriteBack(
     output[31:0]    GRF_write_data
 );
     // wires for controller signals. Inline controller since it is really simple.
-    wire GRF_write_data_select = (Inst[31:29] === 6'b100);
+    wire GRF_write_data_select = (Inst[31:29] === 3'b100);
     wire signed_extend;
     wire[31:0] real_MO;
     wire[31:0] MO_from_byte;

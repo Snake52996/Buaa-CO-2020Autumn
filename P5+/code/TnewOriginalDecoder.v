@@ -15,6 +15,6 @@ module TnewOriginalDecoder(
     // except loads, has or can be handled as having an original Tnew of value 1.
     assign Tnew =
     (
-        (Inst[31:29] === 6'b100)   // load instructions
+        (Inst[31:29] === 3'b100)   // load instructions
     ) ? 2'b10 : 2'b01;
 endmodule
