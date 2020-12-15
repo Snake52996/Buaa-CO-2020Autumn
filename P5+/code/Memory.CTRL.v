@@ -5,15 +5,14 @@
 `include "Utility.macros.v"
 module MEM_CTRL(
     input[31:0]     Inst,
-    input[31:0]     address,
-    output[2:0]     size,
-    output          unaligned
+    output[2:0]     read_size,
+    output[2:0]     write_size
 );
     /*
      * Supporting LB, LBU, LH, LHU, LW, SB, SH, SW.
      * Signed or unsigned extension is handled later thus lb/lbu, lh/lhu
      *  acts exactly the same in this state. Actually, since read operations
-     *  always reads 4 bytes, all load instructions acts the same.
+     *  always reads 4 bytes, all load instructions acts the same. Yet 
      * Analyze all these I-type instructions:
      *   lb -- 100000
      *  lbu -- 100100
@@ -26,13 +25,13 @@ module MEM_CTRL(
      *  obviously fields in opcode represent the meanings as follows:
      *   Inst[27:26] -- extra bytes required from the specified address
      *      Inst[29] -- write?
-     * In case the address is not properly aligned, unaligned_exception is activated.
     */
-    wire store = (
-        (Inst[`opcode] === 6'b101000) |    // sb
-        (Inst[`opcode] === 6'b101001) |    // sh
-        (Inst[`opcode] === 6'b101011)      // sw
+    wire        load;
+    wire        store;
+    wire[2:0]   size = Inst[28:26] + 3'b1;
+    LoadStoreInstructionDetector load_store_instruction_detector(
+        .instruction(Inst), .load(load), .store(store)
     );
-    assign size = {3{store}} & (Inst[28:26] + 3'b1);
-    assign unaligned = |(Inst[27:26] & address[1:0]);
+    assign  read_size = {3{load}} & size;
+    assign write_size = {3{store}} & size;
 endmodule

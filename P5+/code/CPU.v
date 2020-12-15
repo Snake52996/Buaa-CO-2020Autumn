@@ -17,8 +17,7 @@ module CPU(
     // connections with bridge
     input[31:0]     bridge_read_data,
     input[7:2]      interrupt_request,
-    input           bridge_address_accepted,
-    input           bridge_instruction_accepted,
+    input           bridge_accepted,
     output[31:0]    bridge_address,
     output[31:0]    bridge_write_data,
     output[2:0]     bridge_write_size,
@@ -351,9 +350,23 @@ module CPU(
     wire[31:0]  MEM_write_data;
     wire[31:0]  MEM_write_address = {MEM_I_AO[31:2], 2'b00};
     Memory MEM(
-        .Inst(MEM_I_Instruction), .AO(MEM_I_AO), .rt(MEM_I_rt), .clk(clk),
-        .reset(reset), .Inst_out(MEM_O_Instruction), .AO_out(MEM_O_AO), .MO(MEM_O_MO),
-        .debug_enable(MEM_write_enable), .debug_data(MEM_write_data) /* .unaligned_exception() */
+        .Inst(MEM_I_Instruction),
+        .AO(MEM_I_AO),
+        .rt(MEM_I_rt),
+        .clk(clk),
+        .reset(reset),
+        .bridge_read_data(bridge_read_data),
+        .bridge_accepted(bridge_accepted),
+        .bridge_address(bridge_address),
+        .bridge_write_data(bridge_write_data),
+        .bridge_write_size(bridge_write_size),
+        .bridge_read_size(bridge_read_size),
+        .Inst_out(MEM_O_Instruction),
+        .AO_out(MEM_O_AO),
+        .MO(MEM_O_MO),
+        .debug_enable(MEM_write_enable),
+        .debug_data(MEM_write_data),
+        .accepted()
     );
     // Forward implementation
     wire   MEM_rt_select;
