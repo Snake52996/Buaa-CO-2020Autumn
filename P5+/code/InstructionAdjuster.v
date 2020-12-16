@@ -7,11 +7,11 @@
 */
 module InstructionAdjuster(
     input[31:0]     instruction_in,
+    output          accepted,
     output[31:0]    instruction_out
 );
-    wire supported;
     InstructionDetector instruction_detector(
-        .instruction(instruction_in), .supported(supported)
+        .instruction(instruction_in), .supported(accepted)
     );
-    assign instruction_out = instruction_in & {32{supported}};
+    assign instruction_out = instruction_in & {32{accepted}};
 endmodule

@@ -10,7 +10,10 @@ module EX_CTRL(
     output[1:0]     ALU_B_select,
     output[1:0]     AO_select,
     output[3:0]     ALU_ctrl,
-    output[4:0]     Multiply_ctrl
+    output[4:0]     Multiply_ctrl,
+    output          overflow_detection,
+    output          load_instruction,
+    output          store_instruction
 );
     wire special = (Inst[`opcode] === 6'b000000);
     wire shift = special & (
@@ -110,4 +113,14 @@ module EX_CTRL(
     assign Multiply_ctrl = {5{Multiply_operations}} & {
         Inst[3], Inst[1], Inst[0], (~Inst[3]) & Inst[0], Inst[1]
     };
+    LoadStoreInstructionDetector execution_load_store_instruction_detector(
+        .instruction(Inst),
+        .load(load_instruction),
+        .store(store_instruction)
+    );
+    assign overflow_detection = load_instruction | store_instruction | (
+        (special & Inst[`funct] === 6'b100000) |        // add
+        (special & Inst[`funct] === 6'b100010) |        // sub
+        (Inst[`opcode] === 6'b001000)                   // addi
+    );
 endmodule

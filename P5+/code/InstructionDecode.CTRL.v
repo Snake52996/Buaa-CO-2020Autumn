@@ -5,7 +5,6 @@
 `include "Utility.macros.v"
 module ID_CTRL(
     input[31:0]     Inst,
-    output          GRF_addr_2_select,
     output[1:0]     DO_ID_select,
     output          comp_B_select,
     output          comp_signed_compare,
@@ -13,32 +12,29 @@ module ID_CTRL(
     output          ext_signed_extend,
     output          npc_addr_select,
     output          npc_ctrl,
-    output          branch_instruction
+    output          branch_instruction,
+    output          has_delay_slot,
+    output          branch_likely
 );
-    assign GRF_addr_2_select = (
-        (Inst[`opcode] === 6'b000001 && Inst[`rt] === 5'b00000) ||  // bltz
-        (Inst[`opcode] === 6'b000001 && Inst[`rt] === 5'b10000) ||  // bltzal
-        (Inst[`opcode] === 6'b000001 && Inst[`rt] === 5'b00001) ||  // bgez
-        (Inst[`opcode] === 6'b000001 && Inst[`rt] === 5'b10001) ||  // bgezal
-        (Inst[`opcode] === 6'b000110) ||                            // blez
-        (Inst[`opcode] === 6'b000111)                               // bgtz
-    );
     assign DO_ID_select =
         (
             (Inst[`opcode] === 6'b000001 && Inst[`rt] === 5'b10001) ||  // bgezal
             (Inst[`opcode] === 6'b000001 && Inst[`rt] === 5'b10000) ||  // bltzal
             Inst[`opcode] === 6'b000011 ||                              // jal
             (Inst[`opcode] === 6'b000000 && Inst[`funct] === 6'b001001) // jalr
-        ) ? 2'b00 :
+        ) ? 2'b00/* link target */ :
         (
             Inst[`opcode] === 6'b001111 // lui
-        ) ? 2'b01 :
+        ) ? 2'b01/* SLL16 */ :
         (
             (Inst[`opcode] === 6'b000000 && Inst[`funct] === 6'b101010) ||  // slt
             (Inst[`opcode] === 6'b000000 && Inst[`funct] === 6'b101011) ||  // sltu
             Inst[`opcode] === 6'b001010 ||                                  // slti
             Inst[`opcode] === 6'b001011                                     // sltiu
-        ) ? 2'b10 : 2'b00;
+        ) ? 2'b10/* comparer */ :
+        (
+            (Inst[`opcode] === 6'b010000) & (Inst[`rs] === 5'b00000)        // mfc0
+        ) ? 2'b11/* data from CP0 */ : 2'b00;
     assign comp_B_select = (
         Inst[`opcode] === 6'b001010 ||  // slti
         Inst[`opcode] === 6'b001011     // sltiu
@@ -104,5 +100,14 @@ module ID_CTRL(
         (Inst[`opcode] === 6'b000011) ||                                // jal
         (Inst[`opcode] === 6'b000000 && Inst[`funct] === 6'b001000) ||  // jr
         (Inst[`opcode] === 6'b000000 && Inst[`funct] === 6'b001001)     // jalr
+    );
+    // an instruction has delay slot if and only if it is a branch instruction
+    assign has_delay_slot = branch_instruction;
+    assign branch_likely = (
+        (
+            (Inst[`opcode] === 6'b010000) &
+            (Inst[25] === 1'b1) &
+            (Inst[`funct] === 6'b011000)
+        )                                                               // eret
     );
 endmodule

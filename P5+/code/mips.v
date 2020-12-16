@@ -9,12 +9,16 @@ module mips(
     output[31:0]    addr
 );
     wire[31:0]  CP0_read_data;
-    wire[31:0]  CP0_EPC;
-    wire        CP0_BD;
-    wire[4:0]   CP0_address;
-    wire[31:0]  CP0_write_data;
-    wire        CP0_write_enable;
-    wire[31:0]  CP0_cause;
+    wire[31:0]  CP0_SR_output;
+    wire[31:0]  CP0_EPC_output;
+    wire[31:0]  CP0_Cause_output;
+    wire[4:0]   CP0_read_address;
+    wire[31:0]  CP0_SR_input;
+    wire        CP0_SR_enable;
+    wire[31:0]  CP0_Cause_input;
+    wire        CP0_Cause_enable;
+    wire[31:0]  CP0_EPC_input;
+    wire        CP0_EPC_enable;
     wire[31:0]  bridge_read_data;
     wire[7:2]   interrupt_request;
     wire        bridge_accepted;
@@ -26,12 +30,16 @@ module mips(
         .clk(clk),
         .reset(reset),
         .CP0_read_data(CP0_read_data),
-        .CP0_EPC(CP0_EPC),
-        .CP0_BD(CP0_BD),
-        .CP0_address(CP0_address),
-        .CP0_write_data(CP0_write_data),
-        .CP0_write_enable(CP0_write_enable),
-        .CP0_cause(CP0_cause),
+        .CP0_SR_output(CP0_SR_output),
+        .CP0_EPC_output(CP0_EPC_output),
+        .CP0_Cause_output(CP0_Cause_output),
+        .CP0_read_address(CP0_read_address),
+        .CP0_SR_input(CP0_SR_input),
+        .CP0_SR_enable(CP0_SR_enable),
+        .CP0_Cause_input(CP0_Cause_input),
+        .CP0_Cause_enable(CP0_Cause_enable),
+        .CP0_EPC_input(CP0_EPC_input),
+        .CP0_EPC_enable(CP0_EPC_enable),
         .bridge_read_data(bridge_read_data),
         .interrupt_request(interrupt_request),
         .bridge_accepted(bridge_accepted),
@@ -41,16 +49,20 @@ module mips(
         .bridge_read_size(bridge_read_size),
         .macroscopic_PC(addr)
     );
-    CoOperator0 CP0(
+    CoProcessor0 CP0(
         .clk(clk),
         .reset(reset),
-        .address(CP0_address),
-        .write_data(CP0_write_data),
-        .write_enable(CP0_write_enable),
-        .cause_input(CP0_cause),
+        .read_address(CP0_read_address),
+        .SR_input(CP0_SR_input),
+        .SR_enable(CP0_SR_enable),
+        .Cause_input(CP0_Cause_input),
+        .Cause_enable(CP0_Cause_enable),
+        .EPC_input(CP0_EPC_input),
+        .EPC_enable(CP0_EPC_enable),
         .read_data(CP0_read_data),
-        .EPC_output(CP0_EPC),
-        .BD_output(CP0_BD)
+        .SR_output(CP0_SR_output),
+        .EPC_output(CP0_EPC_output),
+        .Cause_output(CP0_Cause_output)
     );
     wire        timer0_write_enable;
     wire[31:0]  timer0_read_data;
