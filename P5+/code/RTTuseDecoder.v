@@ -22,6 +22,10 @@ module RTTuseDecoder(
         (Inst[`opcode] === 6'b001011) |             // sltiu
         (Inst[`opcode] === 6'b001111) |             // xori
         (Inst[`opcode] === 6'b100011) |             // lw
+        (Inst[`opcode] === 6'b100001) |             // lh
+        (Inst[`opcode] === 6'b100101) |             // lhu
+        (Inst[`opcode] === 6'b100000) |             // lb
+        (Inst[`opcode] === 6'b100100) |             // lbu
         (Inst[`opcode] === 6'b000011) |             // jal
         (Inst[`opcode] === 6'b000010) |             // j
         (Inst[`opcode] === 6'b001111) |             // lui
