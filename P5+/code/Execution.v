@@ -17,10 +17,16 @@ module Execution(
     input[31:0]     EPC_in,
     input[4:0]      ExcCode_in,
     input           BD_in,
+    input[31:0]     mul_load,
+    input           mul_calculate,
+    input           mul_load_HI,
+    input           mul_load_LO,
     output[31:0]    Inst_out,
     output[31:0]    rt_out,
     output[31:0]    AO,
     output          Multiply_busy,
+    output[31:0]    HI,
+    output[31:0]    LO,
     output          exception_out,
     output[31:0]    EPC_out,
     output[4:0]     ExcCode_out,
@@ -82,9 +88,20 @@ module Execution(
         .overflow(ALU_overflow)
     );
     Multiply multiply(
-        .A(ALU_A), .B(ALU_B), .ctrl(Multiply_ctrl),
-        .clk(clk), .reset(reset),
-        .S(Multiply_S), .count_down(/*not connected*/), .busy(Multiply_busy)
+        .A(ALU_A),
+        .B(ALU_B),
+        .load(mul_load),
+        .ctrl(Multiply_ctrl),
+        .clk(clk),
+        .reset(reset),
+        .calculate(mul_calculate),
+        .load_HI(mul_load_HI),
+        .load_LO(mul_load_LO),
+        .S(Multiply_S),
+        .HI(HI),
+        .LO(LO),
+        .count_down(/*not connected*/),
+        .busy(Multiply_busy)
     );
     EX_CTRL EX_ctrl(
         .Inst(Inst),

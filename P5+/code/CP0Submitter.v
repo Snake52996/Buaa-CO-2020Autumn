@@ -28,7 +28,7 @@ module CP0Submitter(
     wire        SR_EXL = current_SR[1];
     wire[15:10] SR_interrupt_enable = current_SR[15:10];
     wire[15:10] interrupt_enable = SR_interrupt_enable & {6{SR_IE & (~SR_EXL)}};
-    wire        interrupt_vector = interrupt_enable & interrupt_request;
+    wire[15:10] interrupt_vector = interrupt_enable & interrupt_request;
     wire        interrupt = |interrupt_vector;
     wire        submit = interrupt | exception;
     wire        return;

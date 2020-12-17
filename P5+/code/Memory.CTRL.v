@@ -28,7 +28,7 @@ module MEM_CTRL(
     */
     wire        load;
     wire        store;
-    wire[2:0]   size = Inst[28:26] + 3'b1;
+    wire[2:0]   size = {1'b0, Inst[27:26]} + 3'b1;
     LoadStoreInstructionDetector load_store_instruction_detector(
         .instruction(Inst), .load(load), .store(store)
     );

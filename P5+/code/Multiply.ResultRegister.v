@@ -10,20 +10,20 @@
 module ResultRegister (
     input[31:0]     HI_in,
     input[31:0]     LO_in,
-    input[2:0]      ctrl,
+    input           ctrl,
     input           clk,
     input           reset,
-    output[31:0]    S
+    output[31:0]    S,
+    output[31:0]    HI,
+    output[31:0]    LO
 );
-    wire[31:0]  current_HI;
-    wire[31:0]  current_LO;
-    Register#(32,0)HI(
-        .D(HI_in), .clk(clk), .reset(reset), .enable(ctrl[2]), .Q(current_HI)
+    WriteThroughRegister#(32,0)HI_Register(
+        .D(HI_in), .clk(clk), .reset(reset), .enable(ctrl), .Q(HI)
     );
-    Register#(32,0)LO(
-        .D(LO_in), .clk(clk), .reset(reset), .enable(ctrl[1]), .Q(current_LO)
+    WriteThroughRegister#(32,0)LO_Register(
+        .D(LO_in), .clk(clk), .reset(reset), .enable(ctrl), .Q(LO)
     );
     MUX2#(32)S_MUX(
-        .in1(current_HI), .in2(current_LO), .select(ctrl[0]), .out(S)
+        .in1(HI), .in2(LO), .select(1'b0), .out(S)
     );
 endmodule

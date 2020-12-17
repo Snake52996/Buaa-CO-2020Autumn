@@ -108,10 +108,16 @@ module CPU(
     wire[31:0]  EX_I_EPC;
     wire[4:0]   EX_I_ExcCode;
     wire        EX_I_BD;
+    wire[31:0]  EX_I_mul_load;
+    wire        EX_I_mul_calculate;
+    wire        EX_I_mul_load_HI;
+    wire        EX_I_mul_load_LO;
     wire[31:0]  EX_O_Instruction;
     wire[31:0]  EX_O_rt;
     wire[31:0]  EX_O_AO;
     wire        Multiply_busy;
+    wire[31:0]  EX_O_HI;
+    wire[31:0]  EX_O_LO;
     wire        EX_O_exception;
     wire[31:0]  EX_O_EPC;
     wire[4:0]   EX_O_ExcCode;
@@ -328,7 +334,7 @@ module CPU(
 
     // Forward implementation
     wire[1:0]   ID_rs_select;
-    wire[1:0]   ID_rt_select;
+    wire[2:0]   ID_rt_select;
     MUX4#(32)ID_rs_MUX(
         .in1(GRF_read_data_1),
         .in2(CP0_read_data),
@@ -337,11 +343,13 @@ module CPU(
         .select(ID_rs_select),
         .out(ID_I_rs)
     );
-    MUX4#(32)ID_rt_MUX(
+    MUX6#(32)ID_rt_MUX(
         .in1(GRF_read_data_2),
         .in2(CP0_read_data),
         .in3(ID_EX_O_DO),
         .in4(MEM_I_AO),
+        .in5(EX_O_HI),
+        .in6(EX_O_LO),
         .select(ID_rt_select),
         .out(ID_I_rt)
     );
@@ -361,14 +369,18 @@ module CPU(
         (ID_O_rt_URA !== 7'b0000000 & ID_O_rt_URA !== 7'b0101111) &
         (ID_EX_O_rd_1_URA === ID_O_rt_URA) &
         (ID_EX_O_T_new === 0)
-    ) ? 2'b10 :
+    ) ? 3'b010 :
     (
         (ID_O_rt_URA !== 7'b0000000 & ID_O_rt_URA !== 7'b0101111) &
         (EX_MEM_O_rd_1_URA === ID_O_rt_URA) &
         (EX_MEM_O_T_new === 0)
-    ) ? 2'b11 : (
+    ) ? 3'b011 : (
         (ID_O_rt_URA[6:5] === 2'b01)
-    ) ? 2'b01 : 2'b00;
+    ) ? 3'b001 : (
+        (ID_O_rt_URA === 7'b1000000)
+    ) ? 3'b100 : (
+        (ID_O_rt_URA === 7'b1000001)
+    ) ? 3'b101 : 3'b000;
     // ^^^^^^^^^^^^^^^^^^^^^^^^^ END OF ID STATE ^^^^^^^^^^^^^^^^^^^^^^^^^
 
     ID_EX id_ex(
@@ -430,10 +442,16 @@ module CPU(
         .EPC_in(EX_I_EPC),
         .ExcCode_in(EX_I_ExcCode),
         .BD_in(EX_I_BD),
+        .mul_load(EX_I_mul_load),
+        .mul_calculate(EX_I_mul_calculate),
+        .mul_load_HI(EX_I_mul_load_HI),
+        .mul_load_LO(EX_I_mul_load_LO),
         .Inst_out(EX_O_Instruction),
         .rt_out(EX_O_rt),
         .AO(EX_O_AO),
         .Multiply_busy(Multiply_busy),
+        .HI(EX_O_HI),
+        .LO(EX_O_LO),
         .exception_out(EX_O_exception),
         .EPC_out(EX_O_EPC),
         .ExcCode_out(EX_O_ExcCode),
@@ -563,6 +581,7 @@ module CPU(
         .new_EPC(CP0_EPC_input),
         .EPC_enable(CP0_EPC_enable)
     );
+    assign macroscopic_PC = EX_MEM_O_PC;
     // Forward implementation
     wire   MEM_rt_select;
     MUX2#(32)MEM_rt_MUX(
@@ -599,6 +618,14 @@ module CPU(
         .write_enable(WB_O_write_enable),
         .write_URA(WB_O_write_URA),
         .write_data(WB_O_write_data)
+    );
+    MultiplySubmitter multiply_submitter(
+        .instruction(WB_I_Instruction),
+        .AO(WB_I_AO),
+        .calculate(EX_I_mul_calculate),
+        .load_HI(EX_I_mul_load_HI),
+        .load_LO(EX_I_mul_load_LO),
+        .load_value(EX_I_mul_load)
     );
 	assign GRF_write_data = WB_O_write_data;
     assign GRF_write_addr = WB_O_write_URA[4:0] & {5{WB_O_write_enable}};
