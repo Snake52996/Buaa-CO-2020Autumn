@@ -46,9 +46,11 @@ module Multiply(
         .out(LO_in)
     );
     ResultRegister result_register(
-        .HI_in(HI_in), .LO_in(LO_in),
+        .HI_in(HI_in),
+        .LO_in(LO_in),
         .ctrl({ctrl[4] | (ctrl[1] & ~ctrl[0]), ctrl[4] | (ctrl[1] & ctrl[0]), ctrl[0]}),
-        .clk(clk), .reset(reset),
+        .clk(clk),
+        .reset(reset),
         .S(S)
     );
     always@(posedge clk)begin

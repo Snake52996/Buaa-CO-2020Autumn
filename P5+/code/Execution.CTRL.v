@@ -16,6 +16,16 @@ module EX_CTRL(
     output          store_instruction
 );
     wire special = (Inst[`opcode] === 6'b000000);
+    wire move_from;
+    wire move_to;
+    MoveFromInstructionDetector EX_CTRL_move_from_instruction_detector(
+        .instruction(Inst),
+        .move_from(move_from)
+    );
+    MoveToInstructionDetector EX_CTRL_move_to_instruction_detector(
+        .instruction(Inst),
+        .move_to(move_to)
+    );
     wire shift = special & (
         Inst[`funct] === 6'b000000 |    // sll
         Inst[`funct] === 6'b000100 |    // sllv
@@ -39,12 +49,15 @@ module EX_CTRL(
     // When DO is reliable, result of ALU is wether meaningless or recalculating of
     //  the same result. Therefore when reliable, DO is directed directly to AO.
     assign AO_select = (
-        (special & Inst[`funct] === 6'b010000) |        // mfhi
-        (special & Inst[`funct] === 6'b010010)          // mflo
-    ) ? 2'b10/* from Multiply */ :     
-    (
+        1'b0
+        /*(special & Inst[`funct] === 6'b010000) |        // mfhi
+        (special & Inst[`funct] === 6'b010010)   */       // mflo
+    ) ? 2'b10/* from Multiply */ : (
         DO_reliable
-    ) ? 2'b01/* from DO */ : 2'b00/* from ALU, as default */;
+    ) ? 2'b01/* from DO */ : (
+        move_from |
+        move_to
+    ) ? 2'b11/* from rt */ : 2'b00/* from ALU, as default */;
     assign ALU_ctrl =
         (
             (special & Inst[`funct] === 6'b100001) |    // addu

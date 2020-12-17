@@ -12,6 +12,16 @@ module GRFWriteEnableDecoder(
     input[31:0] Inst,
     output      GRF_write_enable
 );
+    wire eret;
+    wire move_to;
+    EretDetector GRFWriteEnableDecoder_eret_detector(
+        .instruction(Inst),
+        .eret(eret)
+    );
+    MoveToInstructionDetector GRFWriteEnableDecoder_move_to_detector(
+        .instruction(Inst),
+        .move_to(move_to)
+    );
     assign GRF_write_enable = ~(    // list only non-GRF-writing instructions here
         (Inst[31:29] == 3'b101) |                                           // store
         (Inst[`opcode] == 6'b000000 & Inst[5:3] == 3'b011) |                // mult/div
@@ -22,6 +32,8 @@ module GRFWriteEnableDecoder(
         (Inst[`opcode] == 6'b000111) |                                      // bgtz
         (Inst[`opcode] == 6'b000110) |                                      // blez
         (Inst[`opcode] == 6'b000010) |                                      // j
-        (Inst[`opcode] == 6'b000000 & Inst[`funct] === 6'b001000)           // jr
+        (Inst[`opcode] == 6'b000000 & Inst[`funct] === 6'b001000) |         // jr
+        eret |                                                              // eret
+        move_to
     );
 endmodule

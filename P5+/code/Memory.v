@@ -33,10 +33,20 @@ module Memory(
     // begin of handling exceptions
     wire        load_instruction;
     wire        store_instruction;
+    wire        move_from;
+    wire        move_to;
     LoadStoreInstructionDetector memory_load_store_instruction_detector(
         .instruction(Inst),
         .load(load_instruction),
         .store(store_instruction)
+    );
+    MoveFromInstructionDetector memory_move_from_instruction_detector(
+        .instruction(Inst),
+        .move_from(move_from)
+    );
+    MoveToInstructionDetector memory_move_to_instruction_detector(
+        .instruction(Inst),
+        .move_to(move_to)
     );
     assign exception_out = exception_in | exception;
     assign EPC_out = EPC_in;
@@ -55,7 +65,7 @@ module Memory(
     assign bridge_write_size = write_size;
     assign bridge_read_size = read_size;
     assign Inst_out = Inst;
-    assign AO_out = AO;
+    assign AO_out = (move_to | move_from) ? rt : AO;
     assign MO = bridge_read_data;
     DM#(14,0,32'h2fff)data_memory(
         .address(AO),

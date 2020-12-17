@@ -62,6 +62,7 @@ module InstructionDecode(
     wire        npc_ctrl;
     wire        branch_instruction;
     wire        branch_likely;
+    wire        eret;
     // assignments to outputs
     RSDecoder instruction_decode_rs_decoder(.instruction(Inst), .URA(rs_URA));
     RTDecoder instruction_decode_rt_decoder(.instruction(Inst), .URA(rt_URA));
@@ -70,13 +71,12 @@ module InstructionDecode(
     assign rt = rt_in;
     assign immediate = ext_result;
     assign PC_jump = branch_instruction & comp_result[0];
-    // (BUG) Cannot nullify delay slot after instruction eret
-    assign nullify_delay_slot = branch_likely & (~comp_result[0]);
+    assign nullify_delay_slot = ((branch_likely & (~comp_result[0])) | eret);
     MUX4#(32)ID_DO_MUX(
         .in1(link_target),
         .in2(sll16_result),
         .in3(comp_result),
-        .in4(rs),
+        .in4(rt),
         .select(DO_ID_select),
         .out(DO)
     );
@@ -142,6 +142,7 @@ module InstructionDecode(
         .npc_ctrl(npc_ctrl),
         .branch_instruction(branch_instruction),
         .has_delay_slot(has_delay_slot),
-        .branch_likely(branch_likely)
+        .branch_likely(branch_likely),
+        .eret(eret)
     );
 endmodule

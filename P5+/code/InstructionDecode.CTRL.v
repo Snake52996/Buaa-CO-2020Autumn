@@ -14,8 +14,19 @@ module ID_CTRL(
     output          npc_ctrl,
     output          branch_instruction,
     output          has_delay_slot,
-    output          branch_likely
+    output          branch_likely,
+    output          eret
 );
+    wire move_from;
+    wire move_to;
+    MoveFromInstructionDetector ID_CTRL_move_from_instruction_detector(
+        .instruction(Inst),
+        .move_from(move_from)
+    );
+    MoveToInstructionDetector ID_CTRL_move_to_instruction_detector(
+        .instruction(Inst),
+        .move_to(move_to)
+    );
     assign DO_ID_select =
         (
             (Inst[`opcode] === 6'b000001 && Inst[`rt] === 5'b10001) ||  // bgezal
@@ -33,7 +44,7 @@ module ID_CTRL(
             Inst[`opcode] === 6'b001011                                     // sltiu
         ) ? 2'b10/* comparer */ :
         (
-            (Inst[`opcode] === 6'b010000) & (Inst[`rs] === 5'b00000)        // mfc0
+            move_from | move_to
         ) ? 2'b11/* data from CP0 */ : 2'b00;
     assign comp_B_select = (
         Inst[`opcode] === 6'b001010 ||  // slti
@@ -83,8 +94,9 @@ module ID_CTRL(
         Inst[`opcode] === 6'b001011     // sltiu
     );
     assign npc_addr_select = (
-        (Inst[`opcode] === 6'b000000 && Inst[`funct] === 6'b001000) ||  // jr
-        (Inst[`opcode] === 6'b000000 && Inst[`funct] === 6'b001001)     // jalr
+        (Inst[`opcode] === 6'b000000 && Inst[`funct] === 6'b001000) |   // jr
+        (Inst[`opcode] === 6'b000000 && Inst[`funct] === 6'b001001) |   // jalr
+        eret                                                            // eret
     );
     assign npc_ctrl = ~(
         Inst[`opcode] == 6'b000010 ||  // j
@@ -99,15 +111,15 @@ module ID_CTRL(
         (Inst[`opcode] === 6'b000010) ||                                // j
         (Inst[`opcode] === 6'b000011) ||                                // jal
         (Inst[`opcode] === 6'b000000 && Inst[`funct] === 6'b001000) ||  // jr
-        (Inst[`opcode] === 6'b000000 && Inst[`funct] === 6'b001001)     // jalr
+        (Inst[`opcode] === 6'b000000 && Inst[`funct] === 6'b001001) ||  // jalr
+        eret                                                            // eret
     );
     // an instruction has delay slot if and only if it is a branch instruction
     assign has_delay_slot = branch_instruction;
-    assign branch_likely = (
-        (
-            (Inst[`opcode] === 6'b010000) &
-            (Inst[25] === 1'b1) &
-            (Inst[`funct] === 6'b011000)
-        )                                                               // eret
+    // no branch likely instructions is supported currently
+    assign branch_likely = 1'b0;
+    EretDetector instruction_decode_controller_eret_detector(
+        .instruction(Inst),
+        .eret(eret)
     );
 endmodule

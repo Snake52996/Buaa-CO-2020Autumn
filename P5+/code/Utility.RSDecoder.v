@@ -18,14 +18,14 @@ module RSDecoder(
     output[6:0]     URA
 );
     // For most instructions, RS is directly their rs field in GRF
-    // move from instructions shall be handled separately
+    // eret shall be handled separately
     wire[5:0] opcode = instruction[`opcode];
     wire[5:0] funct = instruction[`funct];
     wire[4:0] rs = instruction[`rs];
-    assign URA = (
-        ((opcode === 6'b000000) & (funct === 6'b010000)) ? 7'b1000000 :             // mfhi
-        ((opcode === 6'b000000) & (funct === 6'b010010)) ? 7'b1000001 :             // mflo
-        ((opcode === 6'b010000) & (rs === 5'b00000)) ? {2'b01, instruction[`rd]} :  // mfc0
-        {2'b00, rs}                                                                 // general
+    wire      eret;
+    EretDetector RSDecoder_eret_detector(
+        .instruction(instruction),
+        .eret(eret)
     );
+    assign URA = eret ? 7'b0101110 : {2'b00, rs};
 endmodule

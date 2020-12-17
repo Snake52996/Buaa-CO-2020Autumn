@@ -150,24 +150,24 @@ module CPU(
     wire[31:0]  WB_I_Instruction;
     wire[31:0]  WB_I_AO;
     wire[31:0]  WB_I_MO;
-    wire        WB_O_GRF_write_enable;
-    wire[4:0]   WB_O_GRF_write_addr;
-    wire[31:0]  WB_O_GRF_write_data;
+    wire        WB_O_write_enable;
+    wire[6:0]   WB_O_write_URA;
+    wire[31:0]  WB_O_write_data;
+    wire[31:0]  WB_write_data;
 	// End of variables
 
     // Top level control signals
 	wire        pause;
 
-    // pause logic
+    // configuration to pipeline registers
     assign IF_I_PC_enable = ~pause;
     assign IF_ID_enable = ~pause;
-    assign ID_EX_reset = pause | reset;
-    // enable registers & link reset
-    assign IF_ID_reset = reset;
+    assign IF_ID_reset = reset | ((~pause) & ID_O_nullify_delay_slot) | IF_I_handle_exception;
+    assign ID_EX_reset = pause | reset | IF_I_handle_exception;
     assign ID_EX_enable = 1'b1;
-    assign EX_MEM_reset = reset;
+    assign EX_MEM_reset = reset | IF_I_handle_exception;
     assign EX_MEM_enable = 1'b1;
-    assign MEM_WB_reset = reset;
+    assign MEM_WB_reset = reset | IF_I_handle_exception;
     assign MEM_WB_enable = 1'b1;
 
     GRF grf(
@@ -262,19 +262,29 @@ module CPU(
     wire[6:0]   ID_RD_1_URA;
     wire[6:0]   ID_RD_2_URA;
     wire[6:0]   ID_RD_3_URA;
-    wire        ID_GRF_write_enable;
+    wire        ID_RD_write_enable;
     wire[1:0]   ID_T_new;
-    wire        ID_slt_rs_pause;
-    wire        ID_slt_rt_pause;
     wire        multiply_instruction = (
                     (ID_I_Instruction[`opcode] === 6'b000000) & (ID_I_Instruction[5:4] === 2'b01)
                 );
-    TnewOriginalDecoder T_new_generator(.Inst(ID_I_Instruction), .Tnew(ID_T_new));
+    TnewOriginalDecoder T_new_generator(
+        .Inst(ID_I_Instruction),
+        .RT_URA(ID_O_rt_URA),
+        .EX_RD_URA(ID_EX_O_rd_1_URA),
+        .EX_Tnew(ID_EX_O_T_new),
+        .MEM_RD_URA(EX_MEM_O_rd_1_URA),
+        .MEM_Tnew(EX_MEM_O_T_new),
+        .Tnew(ID_T_new)
+    );
     RSTuseDecoder RS_T_use_generator(
-        .Inst(ID_I_Instruction), .used(ID_RS_used), .Tuse(ID_RS_T_use)
+        .Inst(ID_I_Instruction),
+        .used(ID_RS_used),
+        .Tuse(ID_RS_T_use)
     );
     RTTuseDecoder RT_T_use_generator(
-        .Inst(ID_I_Instruction), .used(ID_RT_used), .Tuse(ID_RT_T_use)
+        .Inst(ID_I_Instruction),
+        .used(ID_RT_used),
+        .Tuse(ID_RT_T_use)
     );
     RDDecoder RD_decoder(
         .instruction(ID_I_Instruction),
@@ -282,48 +292,21 @@ module CPU(
         .URA_possible1(ID_RD_2_URA),
         .URA_possible2(ID_RD_3_URA)
     );
-    GRFWriteEnableDecoder RD_checker(
-        .Inst(ID_I_Instruction), .GRF_write_enable(ID_GRF_write_enable)
+    RDWriteDecoder RD_checker(
+        .instruction(ID_I_Instruction), .enable(ID_RD_write_enable)
     );
-    // DO is reliable(in EX state) if its value is correctly calculated here
-    // In case DO is not set, ID_EX_I_DO_reliable shall always be set 0 to
-    //  avoid misuse.
-    assign ID_slt_rs_pause = (
-            (ID_O_rs_URA !== 7'b0000000 & ID_O_rs_URA !== 7'b0101111) & (
-                ((ID_EX_O_rd_1_URA === ID_O_rs_URA) & (0 < ID_EX_O_T_new)) |
-                ((EX_MEM_O_rd_1_URA === ID_O_rs_URA) & (0 < EX_MEM_O_T_new))
-            )
-    );
-    assign ID_slt_rt_pause = (
-            (ID_O_rt_URA !== 7'b0000000 & ID_O_rt_URA !== 7'b0101111) & (
-                ((ID_EX_O_rd_1_URA === ID_O_rt_URA) & (0 < ID_EX_O_T_new)) |
-                ((EX_MEM_O_rd_1_URA === ID_O_rt_URA) & (0 < EX_MEM_O_T_new))
-            )
-    );
-    assign ID_EX_I_DO_reliable = (
-        (ID_I_Instruction[`opcode] === 6'b000001 & ID_I_Instruction[20]) |                      // bgezal/bltzal
-        (ID_I_Instruction[`opcode] === 6'b000000 & ID_I_Instruction[`funct] === 6'b001001) |    // jalr
-        (ID_I_Instruction[`opcode] === 6'b000011) |                                 // jal
-        (ID_I_Instruction[`opcode] === 6'b001111) |                                 // lui
-        (
-            (ID_I_Instruction[`opcode] === 6'b000000) &
-            (ID_I_Instruction[`funct] === 6'b101010 | ID_I_Instruction[`funct] === 6'b101011) &
-            ((~ID_slt_rs_pause) & (~ID_slt_rt_pause))
-        ) |
-        (
-            ((ID_I_Instruction[`opcode] === 6'b001010) | (ID_I_Instruction[`opcode] === 6'b001011)) &
-            (~ID_slt_rs_pause)
-        )
-    );
-    assign ID_EX_I_T_new = (ID_EX_I_DO_reliable === 1'b1) ? 2'b00 : ID_T_new;
+    assign ID_EX_I_T_new = ID_T_new;
+    assign ID_EX_I_DO_reliable = ID_T_new === 2'b00;
     // To avoid unwanted forwarding, set piped rd_addr to 0 if instruction
     //  won't modify GRF.
-    assign ID_EX_I_rd_1_URA = ID_RD_1_URA & {7{ID_GRF_write_enable}};
-    assign ID_EX_I_rd_2_URA = ID_RD_2_URA & {7{ID_GRF_write_enable}};
-    assign ID_EX_I_rd_3_URA = ID_RD_3_URA & {7{ID_GRF_write_enable}};
+    assign ID_EX_I_rd_1_URA = ID_RD_1_URA & {7{ID_RD_write_enable}};
+    assign ID_EX_I_rd_2_URA = ID_RD_2_URA & {7{ID_RD_write_enable}};
+    assign ID_EX_I_rd_3_URA = ID_RD_3_URA & {7{ID_RD_write_enable}};
     assign GRF_read_addr_1 = ID_O_rs_URA[4:0];
     assign GRF_read_addr_2 = ID_O_rt_URA[4:0];
-    assign CP0_read_address = ID_O_rs_URA[4:0];
+    assign CP0_read_address = (
+        ID_O_rs_URA[6:5] === 2'b01
+    ) ? ID_O_rs_URA[4:0] : ID_O_rt_URA[4:0];
 
     // Pausing the pipeline if needed
     assign pause = (
@@ -354,10 +337,11 @@ module CPU(
         .select(ID_rs_select),
         .out(ID_I_rs)
     );
-    MUX3#(32)ID_rt_MUX(
+    MUX4#(32)ID_rt_MUX(
         .in1(GRF_read_data_2),
-        .in2(ID_EX_O_DO),
-        .in3(MEM_I_AO),
+        .in2(CP0_read_data),
+        .in3(ID_EX_O_DO),
+        .in4(MEM_I_AO),
         .select(ID_rt_select),
         .out(ID_I_rt)
     );
@@ -377,12 +361,14 @@ module CPU(
         (ID_O_rt_URA !== 7'b0000000 & ID_O_rt_URA !== 7'b0101111) &
         (ID_EX_O_rd_1_URA === ID_O_rt_URA) &
         (ID_EX_O_T_new === 0)
-    ) ? 2'b01 :
+    ) ? 2'b10 :
     (
         (ID_O_rt_URA !== 7'b0000000 & ID_O_rt_URA !== 7'b0101111) &
         (EX_MEM_O_rd_1_URA === ID_O_rt_URA) &
         (EX_MEM_O_T_new === 0)
-    ) ? 2'b10 : 2'b00;
+    ) ? 2'b11 : (
+        (ID_O_rt_URA[6:5] === 2'b01)
+    ) ? 2'b01 : 2'b00;
     // ^^^^^^^^^^^^^^^^^^^^^^^^^ END OF ID STATE ^^^^^^^^^^^^^^^^^^^^^^^^^
 
     ID_EX id_ex(
@@ -460,36 +446,36 @@ module CPU(
     MUX3#(32)EX_rs_MUX(
         .in1(ID_EX_O_rs),
         .in2(MEM_I_AO),
-        .in3(WB_O_GRF_write_data),
+        .in3(WB_write_data),
         .select(EX_rs_select),
         .out(EX_I_rs)
     );
     MUX3#(32)EX_rt_MUX(
         .in1(ID_EX_O_rt),
         .in2(MEM_I_AO),
-        .in3(WB_O_GRF_write_data),
+        .in3(WB_write_data),
         .select(EX_rt_select),
         .out(EX_I_rt)
     );
     assign EX_rs_select =
     (
-        (ID_EX_O_rs_URA !== 5'b00000) &
+        (ID_EX_O_rs_URA !== 7'b0000000 & ID_EX_O_rs_URA !== 7'b0101111) &
         (EX_MEM_O_rd_1_URA === ID_EX_O_rs_URA) &
         (EX_MEM_O_T_new === 0)
     ) ? 2'b01 :
     (
-        (ID_EX_O_rs_URA !== 5'b00000) &
-        (GRF_write_addr === ID_EX_O_rs_URA)
+        (ID_EX_O_rs_URA !== 7'b0000000 & ID_EX_O_rs_URA !== 7'b0101111) &
+        (WB_write_URA === ID_EX_O_rs_URA)
     ) ? 2'b10 : 2'b00;
     assign EX_rt_select =
     (
-        (ID_EX_O_rt_URA !== 5'b00000) &
+        (ID_EX_O_rt_URA !== 7'b0000000 & ID_EX_O_rt_URA !== 7'b0101111) &
         (EX_MEM_O_rd_1_URA === ID_EX_O_rt_URA) &
         (EX_MEM_O_T_new === 0)
     ) ? 2'b01 :
     (
-        (ID_EX_O_rt_URA !== 5'b00000) &
-        (GRF_write_addr === ID_EX_O_rt_URA)
+        (ID_EX_O_rt_URA !== 7'b0000000 & ID_EX_O_rt_URA !== 7'b0101111) &
+        (WB_write_URA === ID_EX_O_rt_URA)
     ) ? 2'b10 : 2'b00;
     // ^^^^^^^^^^^^^^^^^^^^^^^^^ END OF EX STATE ^^^^^^^^^^^^^^^^^^^^^^^^^
     EX_MEM ex_mem(
@@ -580,13 +566,13 @@ module CPU(
     wire   MEM_rt_select;
     MUX2#(32)MEM_rt_MUX(
         .in1(EX_MEM_O_rt),
-        .in2(WB_O_GRF_write_data),
+        .in2(WB_write_data),
         .select(MEM_rt_select),
         .out(MEM_I_rt)
     );
     assign MEM_rt_select = (
-        (EX_MEM_O_rt_URA !== 5'b00000) &
-        (GRF_write_addr === EX_MEM_O_rt_URA)
+        (EX_MEM_O_rt_URA !== 7'b0000000 & EX_MEM_O_rt_URA !== 7'b0101111) &
+        (WB_write_URA === EX_MEM_O_rt_URA)
     );
     // ^^^^^^^^^^^^^^^^^^^^^^^^^ END OF MEM STATE ^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -609,20 +595,22 @@ module CPU(
         .Inst(WB_I_Instruction),
         .AO(WB_I_AO),
         .MO(WB_I_MO),
-        .GRF_write_enable(WB_O_GRF_write_enable),
-        .GRF_write_addr(WB_O_GRF_write_addr),
-        .GRF_write_data(WB_O_GRF_write_data)
+        .write_enable(WB_O_write_enable),
+        .write_URA(WB_O_write_URA),
+        .write_data(WB_O_write_data)
     );
-	assign GRF_write_data = WB_O_GRF_write_data;
-    assign GRF_write_addr = WB_O_GRF_write_addr & {5{WB_O_GRF_write_enable}};
-    assign GRF_write_enable = WB_O_GRF_write_enable;
+	assign GRF_write_data = WB_O_write_data;
+    assign GRF_write_addr = WB_O_write_URA[4:0] & {5{WB_O_write_enable}};
+    assign GRF_write_enable = WB_O_write_enable & (WB_O_write_URA[6:5] === 2'b00);
+    assign WB_write_data = WB_O_write_data;
+    wire[6:0]   WB_write_URA = WB_O_write_URA & {7{WB_O_write_enable}};
     // ^^^^^^^^^^^^^^^^^^^^^^^^^ END OF WB STATE ^^^^^^^^^^^^^^^^^^^^^^^^^
 
     always@(posedge clk)begin
         // watch signals and output for debugging
         if(!reset)begin
-            if(WB_O_GRF_write_enable)begin
-                $display("%d@%h: $%d <= %h", $time, MEM_WB_O_PC, WB_O_GRF_write_addr, WB_O_GRF_write_data);
+            if(GRF_write_enable)begin
+                $display("%d@%h: $%d <= %h", $time, MEM_WB_O_PC, GRF_write_addr, GRF_write_data);
             end
             if(MEM_write_enable)begin
                 $display("%d@%h: *%h <= %h", $time, EX_MEM_O_PC, MEM_write_address, MEM_write_data);

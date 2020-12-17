@@ -30,7 +30,7 @@ module RDDecoder(
         (opcode === 6'b000000 & funct === 6'b010011)    // mtlo
     ) ? 7'b1000001/* write to LO */ : (
         (opcode === 6'b010000 & rs === 5'b00100)        // mtc0
-    ) ? {2'b01, instruction[`rt]} : (
+    ) ? {2'b01, instruction[`rd]} : (
         (opcode === 6'b000000)                          // all R-types
     ) ? {2'b00, instruction[`rd]} : {2'b00, instruction[`rt]}/* non-R-types */;
     // URA_possible1 is used only in mult, multu, div and divu. Such decode is useless

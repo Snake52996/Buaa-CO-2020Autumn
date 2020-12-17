@@ -7,12 +7,12 @@ module WriteBack(
     input[31:0]     Inst,
     input[31:0]     AO,
     input[31:0]     MO,
-    output          GRF_write_enable,
-    output[4:0]     GRF_write_addr,
-    output[31:0]    GRF_write_data
+    output          write_enable,
+    output[6:0]     write_URA,
+    output[31:0]    write_data
 );
     // wires for controller signals. Inline controller since it is really simple.
-    wire GRF_write_data_select = (Inst[31:29] === 3'b100);
+    wire write_data_select = (Inst[31:29] === 3'b100);
     wire signed_extend;
     wire[31:0] real_MO;
     wire[31:0] MO_from_byte;
@@ -20,13 +20,13 @@ module WriteBack(
     wire[31:0] MO_from_word = MO;
     MUX2#(32)GRF_write_data_MUX(
         .in1(AO), .in2(real_MO),
-        .select(GRF_write_data_select), .out(GRF_write_data)
+        .select(write_data_select), .out(write_data)
     );
-    GRFWriteAddressDecoder address_decoder(
-        .Inst(Inst), .GRF_write_addr(GRF_write_addr)
+    RDDecoder URA_decoder(
+        .instruction(Inst), .URA_real(write_URA)
     );
-    GRFWriteEnableDecoder enable_decoder(
-        .Inst(Inst), .GRF_write_enable(GRF_write_enable)
+    RDWriteDecoder enable_decoder(
+        .instruction(Inst), .enable(write_enable)
     );
     EXT#(8,32)byte_ext(
         .origin(MO[7:0]), .sign(~Inst[28]), .target(MO_from_byte)

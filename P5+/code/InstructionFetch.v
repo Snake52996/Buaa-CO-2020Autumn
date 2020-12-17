@@ -24,6 +24,7 @@ module InstructionFetch(
     wire[31:0]  real_next_PC;    // Reality is harsh.
                                 // There are exceptions, and we need them.
     wire        accepted;
+    wire[31:0]  temp_EPC;
     Register#(32,12288)IF_PC(
         .D(real_next_PC), .clk(clk), .reset(reset), .enable(PC_enable), .Q(PC)
     );
@@ -40,7 +41,8 @@ module InstructionFetch(
 		.PC(PC), .accepted(accepted), .Inst(Inst)
 	);
     assign exception = ~accepted;
-    assign EPC = delay_slot ? last_PC : PC;
+    assign temp_EPC = delay_slot ? last_PC : PC;
+    assign EPC = {temp_EPC[31:2], 2'b00};
     assign ExcCode = `AdEL;     // Let `ExcCode` be always AdEL since it is the only
                                 //  exception may be thrown here. In case no exception
                                 //  occurs, `exception` shall be 0 and value of `ExcCode`

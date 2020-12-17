@@ -70,8 +70,8 @@ module Execution(
         .in1(rt), .in2(rs), .in3({{27{1'b0}}, Inst[`shamt]}), .in4(immediate),
         .select(ALU_B_select), .out(ALU_B)
     );
-    MUX3#(32)AO_MUX(
-        .in1(ALU_S), .in2(DO), .in3(Multiply_S),
+    MUX4#(32)AO_MUX(
+        .in1(ALU_S), .in2(DO), .in3(Multiply_S), .in4(rt),
         .select(AO_select), .out(AO)
     );
     ALU alu(
