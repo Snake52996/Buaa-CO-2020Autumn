@@ -15,6 +15,7 @@ module CP0Submitter(
     input           BD,
     input[15:10]    interrupt_request,
     input[31:0]     current_SR,
+    input[31:0]     current_Cause,
     output          branch_to_handler,
     output[31:0]    new_SR,
     output          SR_enable,
@@ -55,12 +56,12 @@ module CP0Submitter(
     );
     assign SR_enable = submit | return | (mtc0 & mtc0_address === 5'd12);
     MUX2#(32)new_Cause_MUX(
-        .in1(rt),
+        .in1({current_Cause[31:16], interrupt_request, current_Cause[9:0]}),
         .in2({BD, {15{1'b0}}, interrupt_request, 3'b000, (interrupt ? `Int : ExcCode), 2'b00}),
         .select(submit),
         .out(new_Cause)
     );
-    assign Cause_enable = submit | (mtc0 & mtc0_address === 5'd13);
+    assign Cause_enable = submit;
     MUX2#(32)new_EPC_MUX(
         .in1(rt),
         .in2(EPC),

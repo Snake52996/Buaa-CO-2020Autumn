@@ -554,6 +554,7 @@ module CPU(
         .BD(MEM_O_BD),
         .interrupt_request(interrupt_request),
         .current_SR(CP0_SR_output),
+        .current_Cause(CP0_Cause_output),
         .branch_to_handler(IF_I_handle_exception),
         .new_SR(CP0_SR_input),
         .SR_enable(CP0_SR_enable),
