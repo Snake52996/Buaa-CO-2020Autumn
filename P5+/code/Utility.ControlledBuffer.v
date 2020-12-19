@@ -5,8 +5,8 @@
  *  floating
 */
 module ControlledBuffer#(DATA_WIDTH=32)(
-    input[DATA_WIDTH-1:0]       data_in,
-    input                       enable,
+    input[DATA_WIDTH-1:0]   data_in,
+    input                   enable,
     output[DATA_WIDTH-1:0]  data_out
 );
 /*
