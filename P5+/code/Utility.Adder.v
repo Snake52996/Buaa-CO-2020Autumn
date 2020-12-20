@@ -6,10 +6,11 @@
 module Adder(
 	input[31:0]     A,
 	input[31:0]     B,
+	input			carry_in,
 	output[31:0]    S,
     output          overflow
 );
     wire extra_sign;
-	assign {extra_sign, S} = {A[31], A} + {B[31], B};
+	assign {extra_sign, S} = {A[31], A} + {B[31], B} + carry_in;
     assign overflow = extra_sign ^ S[31];
 endmodule

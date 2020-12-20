@@ -11,7 +11,7 @@ module MultiplySubmitter(
     output          load_LO,
     output[31:0]    load_value
 );
-    wire[5:0] special = instruction[`opcode] === 6'b000000;
+    wire special = instruction[`opcode] === 6'b000000;
     wire[5:0] funct = instruction[`funct];
     assign load_value = AO;
     assign load_HI = special & funct === 6'b010001;

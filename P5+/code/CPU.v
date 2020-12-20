@@ -109,6 +109,7 @@ module CPU(
     wire[4:0]   EX_I_ExcCode;
     wire        EX_I_BD;
     wire[31:0]  EX_I_mul_load;
+    wire        EX_I_mul_revoke;
     wire        EX_I_mul_calculate;
     wire        EX_I_mul_load_HI;
     wire        EX_I_mul_load_LO;
@@ -171,6 +172,7 @@ module CPU(
     assign IF_ID_reset = reset | ((~pause) & ID_O_nullify_delay_slot) | IF_I_handle_exception;
     assign ID_EX_reset = pause | reset | IF_I_handle_exception;
     assign ID_EX_enable = 1'b1;
+    assign EX_I_mul_revoke = IF_I_handle_exception;
     assign EX_MEM_reset = reset | IF_I_handle_exception;
     assign EX_MEM_enable = 1'b1;
     assign MEM_WB_reset = reset | IF_I_handle_exception;
@@ -444,6 +446,7 @@ module CPU(
         .BD_in(EX_I_BD),
         .mul_load(EX_I_mul_load),
         .mul_calculate(EX_I_mul_calculate),
+        .mul_revoke(EX_I_mul_revoke),
         .mul_load_HI(EX_I_mul_load_HI),
         .mul_load_LO(EX_I_mul_load_LO),
         .Inst_out(EX_O_Instruction),

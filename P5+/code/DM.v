@@ -78,9 +78,13 @@ module DM#(ADDRESS_WIDTH=10,LOW=0,HIGH=32'h2fff)(
             for(helper = 0; helper < 2**ADDRESS_WIDTH-1; helper = helper + 1)
                 memory[helper] = 8'd0;
         end else if(accepted) begin
-            for(helper = 0; helper < write_size; helper = helper + 1)begin
+            memory[real_address] = (write_size >= 3'd1) ? input_bytes[0] : memory[real_address];
+            memory[real_address + 1] = (write_size >= 3'd2) ? input_bytes[1] : memory[real_address + 1];
+            memory[real_address + 2] = (write_size >= 3'd3) ? input_bytes[2] : memory[real_address + 2];
+            memory[real_address + 3] = (write_size >= 3'd4) ? input_bytes[3] : memory[real_address + 3];
+            /*for(helper = 0; helper < write_size; helper = helper + 1)begin
                 memory[real_address + helper] = input_bytes[helper];
-            end
+            end*/
         end
     end
 endmodule

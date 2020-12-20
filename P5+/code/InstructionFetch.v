@@ -25,10 +25,17 @@ module InstructionFetch(
                                 // There are exceptions, and we need them.
     wire        accepted;
     wire[31:0]  temp_EPC;
+    wire        real_PC_enable = PC_enable | handle_exception;
     Register#(32,12288)IF_PC(
-        .D(real_next_PC), .clk(clk), .reset(reset), .enable(PC_enable), .Q(PC)
+        .D(real_next_PC), .clk(clk), .reset(reset), .enable(real_PC_enable), .Q(PC)
     );
-    Adder _PC4(.A(PC), .B(32'd4), .S(PC4));
+    Adder _PC4(
+        .A(PC),
+        .B(32'd4),
+        .carry_in(1'b0),
+        .S(PC4),
+        .overflow(/* not connected */)
+    );
     MUX2#(32)ideal_next_PC_MUX(
         .in1(PC4), .in2(jump_addr),
         .select(PC_jump_select), .out(ideal_next_PC)

@@ -104,4 +104,26 @@ module mips(
         .Dout(timer1_read_data),
         .IRQ(timer1_interrupt_request)
     );
+    /*
+    TC timer0(
+        .clk(clk),
+        .reset(reset),
+        .Addr(bridge_address),
+        .WE(timer0_write_enable),
+        .Din(bridge_write_data),
+        .PC(addr),
+        .Dout(timer0_read_data),
+        .IRQ(timer0_interrupt_request)
+    );
+    TC timer1(
+        .clk(clk),
+        .reset(reset),
+        .Addr(bridge_address),
+        .WE(timer1_write_enable),
+        .Din(bridge_write_data),
+        .PC(addr),
+        .Dout(timer1_read_data),
+        .IRQ(timer1_interrupt_request)
+    );
+    */
 endmodule

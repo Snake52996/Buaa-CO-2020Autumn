@@ -21,6 +21,7 @@ module Execution(
     input           mul_calculate,
     input           mul_load_HI,
     input           mul_load_LO,
+    input           mul_revoke,
     output[31:0]    Inst_out,
     output[31:0]    rt_out,
     output[31:0]    AO,
@@ -66,7 +67,6 @@ module Execution(
         .enable(~overflow),
         .instruction_out(Inst_out)
     );
-    assign Inst_out = Inst;
     assign rt_out = rt;
     MUX2#(32)ALU_A_MUX(
         .in1(rs), .in2(rt), .select(ALU_A_select), .out(ALU_A)
@@ -94,6 +94,7 @@ module Execution(
         .ctrl(Multiply_ctrl),
         .clk(clk),
         .reset(reset),
+        .revoke(mul_revoke),
         .calculate(mul_calculate),
         .load_HI(mul_load_HI),
         .load_LO(mul_load_LO),

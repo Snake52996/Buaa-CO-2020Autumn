@@ -9,11 +9,9 @@ module Arithmetic(
     output[31:0]        S,
     output              overflow
 );
-    wire[31:0] real_B;
-    MUX2#(32)real_B_MUX(
-        .in1(B), .in2(~B+32'd1), .select(negative), .out(real_B)
-    );
-    Adder Arithmetic_Adder(
-        .A(A), .B(real_B), .S(S), .overflow(overflow)
-    );
+    wire[32:0] temp_A = {A[31], A};
+    wire[32:0] temp_B = {B[31], B};
+    wire[32:0] temp_S = negative ? (temp_A - temp_B) : (temp_A + temp_B);
+    assign overflow = temp_S[32] ^ temp_S[31];
+    assign S = temp_S[31:0];
 endmodule

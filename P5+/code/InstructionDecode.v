@@ -105,12 +105,14 @@ module InstructionDecode(
     Adder link_adder(
         .A(PC4),
         .B(32'd4),
+        .carry_in(1'b0),
         .S(link_target)
         /*No need for overflow*/
     );
     Adder offset_adder(
         .A(PC4),
         .B(real_offset),
+        .carry_in(1'b0),
         .S(offset_target)
         /*No need for overflow*/
     );

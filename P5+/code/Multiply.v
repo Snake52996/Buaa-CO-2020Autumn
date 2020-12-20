@@ -25,6 +25,7 @@ module Multiply(
     input[4:0]      ctrl,
     input           clk,
     input           reset,
+    input           revoke,
     input           calculate,
     input           load_HI,
     input           load_LO,
@@ -40,6 +41,9 @@ module Multiply(
     wire[31:0]  real_B;
     wire[1:0]   real_ctrl;
     wire        pending;
+    wire        divide = real_ctrl[1];
+    wire        zero_B = (real_B === 32'd0);
+    wire        legal_calculation = ~(divide & zero_B);
     assign busy = (count_down !== 0) | pending;
     SourceRegister source_register(
         .src_A(A),
@@ -48,7 +52,7 @@ module Multiply(
         .src_pending(ctrl[4]),
         .clk(clk),
         .update(ctrl[4]),
-        .reset(calculate | reset),
+        .reset(calculate | reset | revoke),
         .A(real_A),
         .B(real_B),
         .real_ctrl(real_ctrl),
@@ -67,20 +71,20 @@ module Multiply(
         .in1(HI),
         .in2(calculate_result_HI),
         .in3(load),
-        .select({load_HI, calculate}),
+        .select({load_HI, calculate & legal_calculation}),
         .out(HI_in)
     );
     MUX3#(32)LO_in_MUX(
         .in1(LO),
         .in2(calculate_result_LO),
         .in3(load),
-        .select({load_LO, calculate}),
+        .select({load_LO, calculate & legal_calculation}),
         .out(LO_in)
     );
     ResultRegister result_register(
         .HI_in(HI_in),
         .LO_in(LO_in),
-        .ctrl(calculate | load_HI | load_LO),
+        .ctrl({load_HI | calculate, load_LO | calculate}),
         .clk(clk),
         .reset(reset),
         .S(S),

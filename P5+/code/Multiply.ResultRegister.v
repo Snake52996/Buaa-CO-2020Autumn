@@ -10,7 +10,7 @@
 module ResultRegister (
     input[31:0]     HI_in,
     input[31:0]     LO_in,
-    input           ctrl,
+    input[1:0]      ctrl,
     input           clk,
     input           reset,
     output[31:0]    S,
@@ -18,10 +18,10 @@ module ResultRegister (
     output[31:0]    LO
 );
     WriteThroughRegister#(32,0)HI_Register(
-        .D(HI_in), .clk(clk), .reset(reset), .enable(ctrl), .Q(HI)
+        .D(HI_in), .clk(clk), .reset(reset), .enable(ctrl[1]), .Q(HI)
     );
     WriteThroughRegister#(32,0)LO_Register(
-        .D(LO_in), .clk(clk), .reset(reset), .enable(ctrl), .Q(LO)
+        .D(LO_in), .clk(clk), .reset(reset), .enable(ctrl[0]), .Q(LO)
     );
     MUX2#(32)S_MUX(
         .in1(HI), .in2(LO), .select(1'b0), .out(S)
