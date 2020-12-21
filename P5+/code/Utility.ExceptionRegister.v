@@ -22,7 +22,7 @@ module ExceptionRegister(
     Register#(1,1'b0)exception(
         .D(exception_in), .clk(clk), .reset(reset), .enable(enable), .Q(exception_out)
     );
-    Register#(32,32'h3000)EPC(
+    Register#(32,32'd0)EPC(
         .D(EPC_in), .clk(clk), .reset(reset), .enable(enable), .Q(EPC_out)
     );
     Register#(5,5'd0)ExcCode(

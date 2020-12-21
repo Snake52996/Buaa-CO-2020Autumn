@@ -165,6 +165,7 @@ module CPU(
 
     // Top level control signals
 	wire        pause;
+    wire        exception_register_reset;
 
     // configuration to pipeline registers
     assign IF_I_PC_enable = ~pause;
@@ -177,6 +178,7 @@ module CPU(
     assign EX_MEM_enable = 1'b1;
     assign MEM_WB_reset = reset | IF_I_handle_exception;
     assign MEM_WB_enable = 1'b1;
+    assign exception_register_reset = reset | IF_I_handle_exception;
 
     GRF grf(
         .clk(clk),
@@ -225,7 +227,7 @@ module CPU(
     );
     ExceptionRegister if_id_exception(
         .clk(clk),
-        .reset(IF_ID_reset),
+        .reset(exception_register_reset),
         .enable(IF_ID_enable),
         .exception_in(IF_O_exception),
         .EPC_in(IF_O_EPC),
@@ -418,7 +420,7 @@ module CPU(
     );
     ExceptionRegister id_ex_exception(
         .clk(clk),
-        .reset(ID_EX_reset),
+        .reset(exception_register_reset),
         .enable(ID_EX_enable),
         .exception_in(ID_O_exception),
         .EPC_in(ID_O_EPC),
@@ -524,7 +526,7 @@ module CPU(
     );
     ExceptionRegister ex_mem_exception(
         .clk(clk),
-        .reset(EX_MEM_reset),
+        .reset(exception_register_reset),
         .enable(EX_MEM_enable),
         .exception_in(EX_O_exception),
         .EPC_in(EX_O_EPC),

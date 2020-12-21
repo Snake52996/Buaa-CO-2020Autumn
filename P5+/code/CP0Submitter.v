@@ -30,11 +30,12 @@ module CP0Submitter(
     wire[15:10] interrupt_enable = SR_interrupt_enable & {6{SR_IE & (~SR_EXL)}};
     wire[15:10] interrupt_vector = interrupt_enable & interrupt_request;
     wire        interrupt = |interrupt_vector;
-    wire        submit = interrupt | exception;
+    wire        submit = (interrupt | exception) & valid_status;
     wire        return;
     wire        mtc0;
     wire[6:0]   rd_URA;
     wire[4:0]   mtc0_address;
+    wire        valid_status = (EPC !== 32'd0);
     assign mtc0 = (Inst[`opcode] === 6'b010000 & Inst[`rs] === 5'b00100);
     RDDecoder CP0Submitter_rd_decoder(
         .instruction(Inst), .URA_real(rd_URA)
