@@ -72,86 +72,109 @@ inline static void shiftWordEndian(unsigned char* origin){
     origin[1] = origin[2];
     origin[2] = temp;
 }
-enum class SupportedInstructions{
-    ADD,
-    ADDI,
-    ADDIU,
-    ADDU,
-    AND,
-    ANDI,
-    BEQ,
-    BEQL,
-    BGEZ,
-    BGEZAL,
-    BGEZALL,
-    BGEZL,
-    BGTZ,
-    BGTZL,
-    BLEZ,
-    BLEZL,
-    BLTZ,
-    BLTZAL,
-    BLTZALL,
-    BLTZL,
-    BNE,
-    BNEL,
-    BREAK,
-    DIV,
-    DIVU,
-    ERET,
-    J,
-    JAL,
-    JALR,
-    JR,
-    LB,
-    LBU,
-    LH,
-    LHU,
-    LUI,
-    LW,
-    MFC0,
-    MFHI,
-    MFLO,
-    MTC0,
-    MTHI,
-    MTLO,
-    MULT,
-    MULTU,
-    NOP,
-    NOR,
-    OR,
-    ORI,
-    SB,
-    SH,
-    SLL,
-    SLLV,
-    SLT,
-    SLTI,
-    SLTIU,
-    SLTU,
-    SRA,
-    SRAV,
-    SRL,
-    SRLV,
-    SUB,
-    SUBU,
-    SW,
-    SYSCALL,
-    TEQ,
-    TEQI,
-    TGE,
-    TGEI,
-    TGEIU,
-    TGEU,
-    TLT,
-    TLTI,
-    TLTIU,
-    TLTU,
-    TNE,
-    TNEI,
-    XOR,
-    XORI
+enum class SupportedInstructions: unsigned long long{
+    ADD     = 0x0061646400000000,
+    ADDI    = 0x0361646469000000,
+    ADDIU   = 0x0361646469750000,
+    ADDU    = 0x0061646475000000,
+    AND     = 0x00616e6400000000,
+    ANDI    = 0x03616e6469000000,
+    BEQ     = 0x0562657100000000,
+    BEQL    = 0x056265716c000000,
+    BGEZ    = 0x0a6267657a000000,
+    BGEZAL  = 0x0a6267657a616c00,
+    BGEZALL = 0x0a6267657a616c6c,
+    BGEZL   = 0x0a6267657a6c0000,
+    BGTZ    = 0x0a6267747a000000,
+    BGTZL   = 0x0a6267747a6c0000,
+    BLEZ    = 0x0a626c657a000000,
+    BLEZL   = 0x0a626c657a6c0000,
+    BLTZ    = 0x0a626c747a000000,
+    BLTZAL  = 0x0a626c747a616c00,
+    BLTZALL = 0x0a626c747a616c6c,
+    BLTZL   = 0x0a626c747a6c0000,
+    BNE     = 0x05626e6500000000,
+    BNEL    = 0x05626e656c000000,
+    BREAK   = 0x0e627265616b0000,
+    DIV     = 0x0f64697600000000,
+    DIVU    = 0x0f64697675000000,
+    ERET    = 0x0e65726574000000,
+    J       = 0x0b6a000000000000,
+    JAL     = 0x0b6a616c00000000,
+    JALR    = 0x066a616c72000000,
+    JR      = 0x0c6a720000000000,
+    LB      = 0x046c620000000000,
+    LBU     = 0x046c627500000000,
+    LH      = 0x046c680000000000,
+    LHU     = 0x046c687500000000,
+    LUI     = 0x096c756900000000,
+    LW      = 0x046c770000000000,
+    MFC0    = 0x076d666330000000,
+    MFHI    = 0x0d6d666869000000,
+    MFLO    = 0x0d6d666c6f000000,
+    MTC0    = 0x076d746330000000,
+    MTHI    = 0x0c6d746869000000,
+    MTLO    = 0x0c6d746c6f000000,
+    MULT    = 0x0f6d756c74000000,
+    MULTU   = 0x0f6d756c74750000,
+    NOP     = 0x0e6e6f7000000000,
+    NOR     = 0x006e6f7200000000,
+    OR      = 0x006f720000000000,
+    ORI     = 0x036f726900000000,
+    SB      = 0x0473620000000000,
+    SH      = 0x0473680000000000,
+    SLL     = 0x02736c6c00000000,
+    SLLV    = 0x01736c6c76000000,
+    SLT     = 0x00736c7400000000,
+    SLTI    = 0x03736c7469000000,
+    SLTIU   = 0x03736c7469750000,
+    SLTU    = 0x00736c7475000000,
+    SRA     = 0x0273726100000000,
+    SRAV    = 0x0173726176000000,
+    SRL     = 0x0273726c00000000,
+    SRLV    = 0x0173726c76000000,
+    SUB     = 0x0073756200000000,
+    SUBU    = 0x0073756275000000,
+    SW      = 0x0473770000000000,
+    SYSCALL = 0x0e73797363616c6c,
+    TEQ     = 0x0f74657100000000,
+    TEQI    = 0x0874657169000000,
+    TGE     = 0x0f74676500000000,
+    TGEI    = 0x0874676569000000,
+    TGEIU   = 0x0874676569750000,
+    TGEU    = 0x0f74676575000000,
+    TLT     = 0x0f746c7400000000,
+    TLTI    = 0x08746c7469000000,
+    TLTIU   = 0x08746c7469750000,
+    TLTU    = 0x0f746c7475000000,
+    TNE     = 0x0f746e6500000000,
+    TNEI    = 0x08746e6569000000,
+    XOR     = 0x00786f7200000000,
+    XORI    = 0x03786f7269000000,
+    UNKNOWN_INSTRUCTION
 };
+inline constexpr unsigned long long getInstructionFormat(SupportedInstructions instruction){
+    
+    constexpr unsigned long long formats = {
+        0x0000003a92a94a81,
+        0x0000002a93a94a81,
+        0x0000000593a94a81,
+        0x0000000692a93a81,
+        0x000000c2ab693a81,
+        0x0000000793a92a81,
+        0x0000000002a94a81,
+        0x0000000004a93a81,
+        0x0000000000692a81,
+        0x0000000000693a81,
+        0x0000000000792a81,
+        0x0000000000000781,
+        0x0000000000002a81,
+        0x0000000000004a81,
+        0x0000000000000001,
+        0x0000000003a92a81
+    };
+    return formats[((unsigned long long)instruction) >> 56];
+}
 inline static map<unsigned int, SupportedInstructions> initializeOpcodeMap(){
     map<unsigned int, SupportedInstructions> opcode_map;
     opcode_map[0x02] = SupportedInstructions::J;
@@ -251,25 +274,119 @@ inline static SupportedInstructions identifyInstruction(unsigned int instruction
     static map<unsigned int, SupportedInstructions> COP0_rs_map = initializeCOP0RsMap();
     unsigned int opcode = instruction >> 26;
     SupportedInstructions result;
-    if(opcode == 0x00) result = special_function_map.at(instruction & 0x3f);
-    else if(opcode == 0x01) result = regimm_rt_map.at((instruction >> 16) & 0x1f);
-    else if(opcode == 0x10){
-        if(instruction == 0x42000018) result = SupportedInstructions::ERET;
-        else result = COP0_rs_map.at((instruction >> 21) & 0x1f);
-    }else result = opcode_map.at(opcode);
+    try{
+        if(opcode == 0x00) result = special_function_map.at(instruction & 0x3f);
+        else if(opcode == 0x01) result = regimm_rt_map.at((instruction >> 16) & 0x1f);
+        else if(opcode == 0x10){
+            if(instruction == 0x42000018) result = SupportedInstructions::ERET;
+            else result = COP0_rs_map.at((instruction >> 21) & 0x1f);
+        }else result = opcode_map.at(opcode);
+    }catch(const out_of_range& exception){
+        result = SupportedInstructions::UNKNOWN_INSTRUCTION;
+    }
     if(result == SupportedInstructions::SLL && instruction == 0x0) result = SupportedInstructions::NOP;
     return result;
 }
+inline static void printToString(unsigned char* target, const unsigned char* source, unsigned int& offset){
+    while(*source){
+        *(target++) = *(source++);
+        ++offset;
+    }
+}
 int main(){
     unsigned char buffer[1024];
+    unsigned char out_buffer[100];
     FILE* input_f = fopen("2", "r");
-    unsigned int count = fread(buffer, 4, 256, input_f);
-    fclose(input_f);
+    unsigned int count = 0;
+    unsigned int current_address = 0x3000;
     unsigned int word_offset;
-    for(unsigned int word_bytes = 0; word_bytes < count; ++word_bytes){
-        word_offset = word_bytes << 2;
-        shiftWordEndian(buffer + word_offset);
-        printf("%s\n", toHexadecimalFormat(fromBinaryFormat(buffer + word_offset)).c_str());
+    unsigned int instruction;
+    unsigned int rs;
+    unsigned int rt;
+    unsigned int rd;
+    unsigned int sa;
+    unsigned int address;
+    unsigned int immediate;
+    unsigned int signed_immediate;
+    unsigned long long mnemonic;
+    unsigned long long format;
+    unsigned int output_buffer_pointer;
+    SupportedInstructions decoded_instruction;
+    while(true){
+        count = fread(buffer, 4, 256, input_f);
+        if(!count) break;
+        for(unsigned int word_bytes = 0; word_bytes < count; ++word_bytes){
+            word_offset = word_bytes << 2;
+            shiftWordEndian(buffer + word_offset);
+            instruction = fromBinaryFormat(buffer + word_offset);
+            decoded_instruction = identifyInstruction(decoded_instruction);
+            rs = (instruction >> 21) & 0x1f;
+            rt = (instruction >> 16) & 0x1f;
+            rd = (instruction >> 11) & 0x1f;
+            sa = (instruction >> 6) & 0x1f;
+            immediate = instruction & 0xffff;
+            signed_immediate = immediate | ((immediate & 0x8000) ? 0xffff0000 : 0);
+            if(
+                decoded_instruction == SupportedInstructions::BEQ ||
+                decoded_instruction == SupportedInstructions::BEQL ||
+                decoded_instruction == SupportedInstructions::BGEZ ||
+                decoded_instruction == SupportedInstructions::BGEZAL ||
+                decoded_instruction == SupportedInstructions::BGEZALL ||
+                decoded_instruction == SupportedInstructions::BGEZL ||
+                decoded_instruction == SupportedInstructions::BGTZ ||
+                decoded_instruction == SupportedInstructions::BGTZL ||
+                decoded_instruction == SupportedInstructions::BLEZ ||
+                decoded_instruction == SupportedInstructions::BLEZL ||
+                decoded_instruction == SupportedInstructions::BLTZ ||
+                decoded_instruction == SupportedInstructions::BLTZAL ||
+                decoded_instruction == SupportedInstructions::BLTZALL ||
+                decoded_instruction == SupportedInstructions::BLTZL ||
+                decoded_instruction == SupportedInstructions::BNE ||
+                decoded_instruction == SupportedInstructions::BNEL
+            ){
+                address = ((current_address + 4) & 0xf0000000) | ((instruction & 0x0fffffff) << 2);
+            }else if(
+                decoded_instruction == SupportedInstructions::J ||
+                decoded_instruction == SupportedInstructions::JAL
+            ){
+                address = current_address + 4 + signed_immediate;
+            }
+            mnemonic = ((unsigned long long)decoded_instruction) << 8;
+            format = getInstructionFormat(decoded_instruction);
+            output_buffer_pointer = 0;
+            /*
+    0 -- \0
+    1 -- %mnemonic
+    2 -- %rs
+    3 -- %rt
+    4 -- %rd
+    5 -- %sa
+    6 -- %immediate
+    7 -- %address
+    8 -- <space>
+    9 -- ,
+    a -- $
+    b -- (
+    c -- )
+    */
+            while(format){
+                switch(format & 0xf){
+                    case 0:
+                        out_buffer[output_buffer_pointer++] = '\0';
+                        break;
+                    case 1:
+                        printToString(
+                            out_buffer + output_buffer_pointer,
+                            &(reinterpret_cast<unsigned char>(mnemonic)),
+                            output_buffer_pointer
+                        );
+                        break;
+                    case 2:
+                        
+                }
+            }
+        }
     }
+    fclose(input_f);
     return 0;
 }
