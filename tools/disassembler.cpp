@@ -1,8 +1,17 @@
-#include<string>
 #include<stdexcept>
 #include<cstdio>
 #include<map>
+#include<string>
+#include<filesystem>
+#include<cstdlib>
+#include<charconv>
+#include<cstring>
 using namespace std;
+inline bool isLittleEndian(){
+    unsigned int checker = 1;
+    return (*reinterpret_cast<unsigned char*>(&checker) != 0);
+}
+const bool IS_LITTLE_ENDIAN = isLittleEndian();
 inline static const char* toGeneralRegisterMnemonic(unsigned int address){
     static char general_register_mnemonic[32][5] = {
         "zero", "at", "v0", "v1", "a0", "a1", "a2", "a3",
@@ -13,23 +22,11 @@ inline static const char* toGeneralRegisterMnemonic(unsigned int address){
     if(address >= 32) throw out_of_range("General Register Address out of range.");
     return general_register_mnemonic[address];
 }
-inline static char __toHexadecimalFormat(unsigned int value){
+inline static unsigned char __toHexadecimalFormat(unsigned int value){
     constexpr unsigned int speed_up_result = 'a' - 10;
     value &= 0xf;
     if(value < 10) return '0' + value;
     return speed_up_result + value;
-}
-inline static string toHexadecimalFormat(unsigned int value){
-    string result;
-    result.push_back(__toHexadecimalFormat(value >> 28));
-    result.push_back(__toHexadecimalFormat(value >> 24));
-    result.push_back(__toHexadecimalFormat(value >> 20));
-    result.push_back(__toHexadecimalFormat(value >> 16));
-    result.push_back(__toHexadecimalFormat(value >> 12));
-    result.push_back(__toHexadecimalFormat(value >> 8));
-    result.push_back(__toHexadecimalFormat(value >> 4));
-    result.push_back(__toHexadecimalFormat(value));
-    return result;
 }
 inline static void __normalizeHexadecimalDigital(unsigned char& digital){
     constexpr unsigned int speed_up_result = 'a' - 'A';
@@ -63,14 +60,11 @@ inline static unsigned int fromBinaryFormat(unsigned char* origin){
     result |= ((unsigned int)(origin[3]));
     return result;
 }
-inline static void shiftWordEndian(unsigned char* origin){
-    unsigned char temp;
-    temp = origin[0];
-    origin[0] = origin[3];
-    origin[3] = temp;
-    temp = origin[1];
-    origin[1] = origin[2];
-    origin[2] = temp;
+inline static void shiftEndian(unsigned char* begin, unsigned char* end){
+    while(begin < --end){
+        (*begin) ^= (*end) ^= (*begin) ^= (*end);
+        ++begin;
+    }
 }
 enum class SupportedInstructions: unsigned long long{
     ADD     = 0x0061646400000000,
@@ -155,7 +149,7 @@ enum class SupportedInstructions: unsigned long long{
 };
 inline constexpr unsigned long long getInstructionFormat(SupportedInstructions instruction){
     
-    constexpr unsigned long long formats = {
+    constexpr unsigned long long formats[] = {
         0x0000003a92a94a81,
         0x0000002a93a94a81,
         0x0000000593a94a81,
@@ -287,18 +281,77 @@ inline static SupportedInstructions identifyInstruction(unsigned int instruction
     if(result == SupportedInstructions::SLL && instruction == 0x0) result = SupportedInstructions::NOP;
     return result;
 }
-inline static void printToString(unsigned char* target, const unsigned char* source, unsigned int& offset){
+inline static void printStringToString(unsigned char* target, const unsigned char* source, unsigned int& offset){
     while(*source){
         *(target++) = *(source++);
         ++offset;
     }
 }
-int main(){
+inline static void printHexadecimalMarkerToString(unsigned char* target, unsigned int& offset){
+    *target = '0';
+    *(target + 1) = 'x';
+    offset += 2;
+}
+inline static void printWordToString(unsigned char* target, unsigned int source, unsigned int& offset){
+    *target = __toHexadecimalFormat(source >> 28);
+    *(target + 1) = __toHexadecimalFormat(source >> 24);
+    *(target + 2) = __toHexadecimalFormat(source >> 20);
+    *(target + 3) = __toHexadecimalFormat(source >> 16);
+    *(target + 4) = __toHexadecimalFormat(source >> 12);
+    *(target + 5) = __toHexadecimalFormat(source >> 8);
+    *(target + 6) = __toHexadecimalFormat(source >> 4);
+    *(target + 7) = __toHexadecimalFormat(source);
+    offset += 8;
+}
+inline static void printHalfToString(unsigned char* target, unsigned int source, unsigned int& offset){
+    *target = __toHexadecimalFormat(source >> 12);
+    *(target + 1) = __toHexadecimalFormat(source >> 8);
+    *(target + 2) = __toHexadecimalFormat(source >> 4);
+    *(target + 3) = __toHexadecimalFormat(source);
+    offset += 4;
+}
+inline static const unsigned char* getStringOfInteger(unsigned int integer){
+    static const unsigned char strs[][3] = {
+        "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+        "10", "11", "12", "13", "14", "15", "16", "17", "18", "19",
+        "20", "21", "22", "23", "24", "25", "26", "27", "28", "29",
+        "30", "31"
+    };
+    return strs[integer];
+}
+inline static const string getFileName(char* path){
+	return filesystem::path(path).stem().string();
+}
+inline static void throwIllegalArgument(char* command){
+	printf("\e[36;1;4mUsage\e[0m: %s <dumped code> [<starting_address>]\n", getFileName(command).c_str());
+	printf("\t     <dumped code> -- The file which contains dumped code in binary format.\n");
+	printf("\t<starting_address> -- The address of first instruction in hexadecimal format without 0x prefix.\n");
+	printf("\e[36;1;4mNOTE\e[0m\n");
+	printf("\tOnly binary format is supported. A helper will be distributed along with\n");
+    printf("\t  this disassembler to convert hexadecimal format to binary one.\n");
+	printf("\tStarting address will be configured to 0x3000 if not specificied.\n");
+	printf("\tLabels in branch and jump instructions will be shown as address to which\n");
+    printf("\t  the instruction will branch to. Such representation may stop you from\n");
+    printf("\t  assembling generated code.\n");
+	exit(1);
+}
+inline static void throwFileNotFound(const char* path){
+	printf("\e[33;1mError: Failed to open %s: file doesn't exist or permission denied.\e[0m\n", path);
+	printf("Maybe you want to check and try again.\n");
+	exit(1);
+}
+int main(int argc, char** argv){
+    if(argc < 2) throwIllegalArgument(argv[0]);
+    FILE* input_f = fopen(argv[1], "rb");
+    if(input_f == NULL) throwFileNotFound(argv[1]);
+    unsigned int current_address = 0x3000;
+    if(argc >= 3){
+        unsigned int temp_length = strlen(argv[2]);
+        from_chars(argv[2], argv[2] + temp_length, current_address, 16);
+    }
     unsigned char buffer[1024];
     unsigned char out_buffer[100];
-    FILE* input_f = fopen("2", "r");
     unsigned int count = 0;
-    unsigned int current_address = 0x3000;
     unsigned int word_offset;
     unsigned int instruction;
     unsigned int rs;
@@ -307,84 +360,186 @@ int main(){
     unsigned int sa;
     unsigned int address;
     unsigned int immediate;
-    unsigned int signed_immediate;
+    int signed_immediate;
     unsigned long long mnemonic;
     unsigned long long format;
     unsigned int output_buffer_pointer;
+    constexpr const unsigned char space[] = " ";
+    constexpr const unsigned char dollar[] = "$";
+    constexpr const unsigned char left[] = "(";
+    constexpr const unsigned char right[] = ")";
+    constexpr const unsigned char comma[] = ",";
+    constexpr const unsigned char unknown_instruction_info[] = "Unknown instruction encountered: ";
+    constexpr const unsigned char tab[] = "\t";
+    constexpr const unsigned char comment[] = "# ";
     SupportedInstructions decoded_instruction;
     while(true){
         count = fread(buffer, 4, 256, input_f);
         if(!count) break;
         for(unsigned int word_bytes = 0; word_bytes < count; ++word_bytes){
-            word_offset = word_bytes << 2;
-            shiftWordEndian(buffer + word_offset);
-            instruction = fromBinaryFormat(buffer + word_offset);
-            decoded_instruction = identifyInstruction(decoded_instruction);
-            rs = (instruction >> 21) & 0x1f;
-            rt = (instruction >> 16) & 0x1f;
-            rd = (instruction >> 11) & 0x1f;
-            sa = (instruction >> 6) & 0x1f;
-            immediate = instruction & 0xffff;
-            signed_immediate = immediate | ((immediate & 0x8000) ? 0xffff0000 : 0);
-            if(
-                decoded_instruction == SupportedInstructions::BEQ ||
-                decoded_instruction == SupportedInstructions::BEQL ||
-                decoded_instruction == SupportedInstructions::BGEZ ||
-                decoded_instruction == SupportedInstructions::BGEZAL ||
-                decoded_instruction == SupportedInstructions::BGEZALL ||
-                decoded_instruction == SupportedInstructions::BGEZL ||
-                decoded_instruction == SupportedInstructions::BGTZ ||
-                decoded_instruction == SupportedInstructions::BGTZL ||
-                decoded_instruction == SupportedInstructions::BLEZ ||
-                decoded_instruction == SupportedInstructions::BLEZL ||
-                decoded_instruction == SupportedInstructions::BLTZ ||
-                decoded_instruction == SupportedInstructions::BLTZAL ||
-                decoded_instruction == SupportedInstructions::BLTZALL ||
-                decoded_instruction == SupportedInstructions::BLTZL ||
-                decoded_instruction == SupportedInstructions::BNE ||
-                decoded_instruction == SupportedInstructions::BNEL
-            ){
-                address = ((current_address + 4) & 0xf0000000) | ((instruction & 0x0fffffff) << 2);
-            }else if(
-                decoded_instruction == SupportedInstructions::J ||
-                decoded_instruction == SupportedInstructions::JAL
-            ){
-                address = current_address + 4 + signed_immediate;
-            }
-            mnemonic = ((unsigned long long)decoded_instruction) << 8;
-            format = getInstructionFormat(decoded_instruction);
             output_buffer_pointer = 0;
-            /*
-    0 -- \0
-    1 -- %mnemonic
-    2 -- %rs
-    3 -- %rt
-    4 -- %rd
-    5 -- %sa
-    6 -- %immediate
-    7 -- %address
-    8 -- <space>
-    9 -- ,
-    a -- $
-    b -- (
-    c -- )
-    */
-            while(format){
-                switch(format & 0xf){
-                    case 0:
-                        out_buffer[output_buffer_pointer++] = '\0';
-                        break;
-                    case 1:
-                        printToString(
-                            out_buffer + output_buffer_pointer,
-                            &(reinterpret_cast<unsigned char>(mnemonic)),
-                            output_buffer_pointer
-                        );
-                        break;
-                    case 2:
-                        
+            word_offset = word_bytes << 2;
+            shiftEndian(buffer + word_offset, buffer + word_offset + 4);
+            instruction = fromBinaryFormat(buffer + word_offset);
+            decoded_instruction = identifyInstruction(instruction);
+            if(decoded_instruction == SupportedInstructions::UNKNOWN_INSTRUCTION){
+                printStringToString(
+                    out_buffer + output_buffer_pointer,
+                    comment,
+                    output_buffer_pointer
+                );
+                printStringToString(
+                    out_buffer + output_buffer_pointer,
+                    unknown_instruction_info,
+                    output_buffer_pointer
+                );
+                printWordToString(
+                    out_buffer + output_buffer_pointer,
+                    instruction,
+                    output_buffer_pointer
+                );
+            }else{
+                rs = (instruction >> 21) & 0x1f;
+                rt = (instruction >> 16) & 0x1f;
+                rd = (instruction >> 11) & 0x1f;
+                sa = (instruction >> 6) & 0x1f;
+                immediate = instruction & 0xffff;
+                signed_immediate = immediate | ((immediate & 0x8000) ? 0xffff0000 : 0);
+                if(
+                    decoded_instruction == SupportedInstructions::J ||
+                    decoded_instruction == SupportedInstructions::JAL
+                ){
+                    address = ((current_address + 4) & 0xf0000000) | ((instruction & 0x03ffffff) << 2);
+                }else{
+                    address = current_address + 4 + (signed_immediate * 4);
+                }
+                mnemonic = ((unsigned long long)decoded_instruction) << 8;
+                if(IS_LITTLE_ENDIAN) shiftEndian(
+                    reinterpret_cast<unsigned char*>(&mnemonic),
+                    reinterpret_cast<unsigned char*>(&mnemonic) + sizeof(mnemonic)
+                );
+                format = getInstructionFormat(decoded_instruction);
+                while(format){
+                    switch(format & 0xf){
+                        case 0:
+                            out_buffer[output_buffer_pointer++] = '\0';
+                            break;
+                        case 1:
+                            printStringToString(
+                                out_buffer + output_buffer_pointer,
+                                reinterpret_cast<unsigned char*>(&mnemonic),
+                                output_buffer_pointer
+                            );
+                            break;
+                        case 2:
+                            printStringToString(
+                                out_buffer + output_buffer_pointer,
+                                getStringOfInteger(rs),
+                                output_buffer_pointer
+                            );
+                            break;
+                        case 3:
+                            printStringToString(
+                                out_buffer + output_buffer_pointer,
+                                getStringOfInteger(rt),
+                                output_buffer_pointer
+                            );
+                            break;
+                        case 4:
+                            printStringToString(
+                                out_buffer + output_buffer_pointer,
+                                getStringOfInteger(rd),
+                                output_buffer_pointer
+                            );
+                            break;
+                        case 5:
+                            printStringToString(
+                                out_buffer + output_buffer_pointer,
+                                getStringOfInteger(sa),
+                                output_buffer_pointer
+                            );
+                            break;
+                        case 6:
+                            printHexadecimalMarkerToString(
+                                out_buffer + output_buffer_pointer, output_buffer_pointer
+                            );
+                            printHalfToString(
+                                out_buffer + output_buffer_pointer,
+                                immediate,
+                                output_buffer_pointer
+                            );
+                            break;
+                        case 7:
+                            printHexadecimalMarkerToString(
+                                out_buffer + output_buffer_pointer, output_buffer_pointer
+                            );
+                            printWordToString(
+                                out_buffer + output_buffer_pointer,
+                                address,
+                                output_buffer_pointer
+                            );
+                            break;
+                        case 8:
+                            printStringToString(
+                                out_buffer + output_buffer_pointer,
+                                space,
+                                output_buffer_pointer
+                            );
+                            break;
+                        case 9:
+                            printStringToString(
+                                out_buffer + output_buffer_pointer,
+                                comma,
+                                output_buffer_pointer
+                            );
+                            break;
+                        case 10:
+                            printStringToString(
+                                out_buffer + output_buffer_pointer,
+                                dollar,
+                                output_buffer_pointer
+                            );
+                            break;
+                        case 11:
+                            printStringToString(
+                                out_buffer + output_buffer_pointer,
+                                left,
+                                output_buffer_pointer
+                            );
+                            break;
+                        case 12:
+                            printStringToString(
+                                out_buffer + output_buffer_pointer,
+                                right,
+                                output_buffer_pointer
+                            );
+                            break;
+                        default: break;
+                    }
+                    format >>= 4;
                 }
             }
+            printStringToString(
+                out_buffer + output_buffer_pointer,
+                tab,
+                output_buffer_pointer
+            );
+            printStringToString(
+                out_buffer + output_buffer_pointer,
+                comment,
+                output_buffer_pointer
+            );
+            printHexadecimalMarkerToString(
+                out_buffer + output_buffer_pointer, output_buffer_pointer
+            );
+            printWordToString(
+                out_buffer + output_buffer_pointer,
+                current_address,
+                output_buffer_pointer
+            );
+            out_buffer[output_buffer_pointer] = '\0';
+            printf("%s\n", out_buffer);
+            current_address += 4;
         }
     }
     fclose(input_f);
