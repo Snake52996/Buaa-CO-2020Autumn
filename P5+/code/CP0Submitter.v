@@ -13,6 +13,7 @@ module CP0Submitter(
     input[31:0]     EPC,
     input[4:0]      ExcCode,
     input           BD,
+    input           valid_status,
     input[15:10]    interrupt_request,
     input[31:0]     current_SR,
     input[31:0]     current_Cause,
@@ -35,7 +36,6 @@ module CP0Submitter(
     wire        mtc0;
     wire[6:0]   rd_URA;
     wire[4:0]   mtc0_address;
-    wire        valid_status = (EPC !== 32'd0);
     assign mtc0 = (Inst[`opcode] === 6'b010000 & Inst[`rs] === 5'b00100);
     RDDecoder CP0Submitter_rd_decoder(
         .instruction(Inst), .URA_real(rd_URA)
@@ -50,8 +50,8 @@ module CP0Submitter(
     assign branch_to_handler = submit;
     MUX3#(32)new_SR_MUX(
         .in1(rt),
-        .in2({{16{1'b0}}, SR_interrupt_enable, {8{1'b0}}, 1'b1, SR_IE}),
-        .in3({{16{1'b0}}, SR_interrupt_enable, {8{1'b0}}, 1'b0, SR_IE}),
+        .in2({current_SR[31:2], 1'b1, SR_IE}),
+        .in3({current_SR[31:2], 1'b0, SR_IE}),
         .select({return, submit}),
         .out(new_SR)
     );
@@ -62,7 +62,7 @@ module CP0Submitter(
         .select(submit),
         .out(new_Cause)
     );
-    assign Cause_enable = submit;
+    assign Cause_enable = 1'b1;
     MUX2#(32)new_EPC_MUX(
         .in1(rt),
         .in2(EPC),

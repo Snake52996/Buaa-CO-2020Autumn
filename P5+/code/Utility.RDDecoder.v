@@ -17,6 +17,11 @@ module RDDecoder(
     wire[5:0] opcode = instruction[`opcode];
     wire[5:0] funct = instruction[`funct];
     wire[4:0] rs = instruction[`rs];
+    wire      eret;
+    EretDetector RDDecoder_eret_detector(
+        .instruction(instruction),
+        .eret(eret)
+    );
     assign URA_real = (
         (opcode === 6'b000001 & instruction[20]) |      // bgezal/bltzal
         (opcode === 6'b000011)                          // jal
@@ -32,7 +37,9 @@ module RDDecoder(
         (opcode === 6'b010000 & rs === 5'b00100)        // mtc0
     ) ? {2'b01, instruction[`rd]} : (
         (opcode === 6'b000000)                          // all R-types
-    ) ? {2'b00, instruction[`rd]} : {2'b00, instruction[`rt]}/* non-R-types */;
+    ) ? {2'b00, instruction[`rd]} : (
+        eret
+    ) ? 7'b0101100 : {2'b00, instruction[`rt]}/* non-R-types */;
     // URA_possible1 is used only in mult, multu, div and divu. Such decode is useless
     //  but I like it, so it presents as follows.
     assign URA_possible1 = (

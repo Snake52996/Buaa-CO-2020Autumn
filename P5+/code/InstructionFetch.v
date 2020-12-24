@@ -18,7 +18,8 @@ module InstructionFetch(
     output          exception,      // if an exception is thrown
     output[31:0]    EPC,
     output[4:0]     ExcCode,
-    output          BD    
+    output          BD,
+    output          valid_status
 );
     wire[31:0]  ideal_next_PC;   // next-PC for ideal environment: no exceptions
     wire[31:0]  real_next_PC;    // Reality is harsh.
@@ -55,4 +56,5 @@ module InstructionFetch(
                                 //  occurs, `exception` shall be 0 and value of `ExcCode`
                                 //  is ignored.
     assign BD = delay_slot;
+    assign valid_status = 1'b1;
 endmodule

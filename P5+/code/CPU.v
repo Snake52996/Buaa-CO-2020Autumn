@@ -54,10 +54,13 @@ module CPU(
     wire[31:0]  IF_O_EPC;
     wire[4:0]   IF_O_ExcCode;
     wire        IF_O_BD;
+    wire        IF_O_valid_status;
     //  IF/ID-register variables
     wire        IF_ID_enable;
     wire        IF_ID_reset;
     wire[31:0]  IF_ID_O_PC;
+    wire        IF_ID_O_valid_status;
+    wire        IF_ID_exception_register_reset;
     //  ID-state variables
     wire[31:0]  ID_I_Instruction;
     wire[31:0]  ID_I_PC4;
@@ -99,6 +102,7 @@ module CPU(
     wire[6:0]   ID_EX_O_rd_3_URA;
     wire[1:0]   ID_EX_O_T_new;
     wire[31:0]  ID_EX_O_PC;
+    wire        ID_EX_O_valid_status;
     //  EX-state variables
     wire[31:0]  EX_I_Instruction;
     wire[31:0]  EX_I_rs;
@@ -134,6 +138,7 @@ module CPU(
     wire[6:0]   EX_MEM_O_rd_3_URA;
     wire[1:0]   EX_MEM_O_T_new;
     wire[31:0]  EX_MEM_O_PC;
+    wire        EX_MEM_O_valid_status;
     //  MEM-state variables
     wire[31:0]  MEM_I_Instruction;
     wire[31:0]  MEM_I_AO;
@@ -171,6 +176,7 @@ module CPU(
     assign IF_I_PC_enable = ~pause;
     assign IF_ID_enable = ~pause;
     assign IF_ID_reset = reset | ((~pause) & ID_O_nullify_delay_slot) | IF_I_handle_exception;
+    assign IF_ID_exception_register_reset = ((~pause) & ID_O_nullify_delay_slot) | reset | IF_I_handle_exception;
     assign ID_EX_reset = pause | reset | IF_I_handle_exception;
     assign ID_EX_enable = 1'b1;
     assign EX_I_mul_revoke = IF_I_handle_exception;
@@ -208,7 +214,8 @@ module CPU(
         .exception(IF_O_exception),
         .EPC(IF_O_EPC),
         .ExcCode(IF_O_ExcCode),
-        .BD(IF_O_BD)
+        .BD(IF_O_BD),
+        .valid_status(IF_O_valid_status)
     );
     assign IF_I_jump_target = ID_O_NPC_target;
     assign IF_I_PC_select = ID_O_PC_jump;
@@ -227,16 +234,18 @@ module CPU(
     );
     ExceptionRegister if_id_exception(
         .clk(clk),
-        .reset(exception_register_reset),
+        .reset(IF_ID_exception_register_reset),
         .enable(IF_ID_enable),
         .exception_in(IF_O_exception),
         .EPC_in(IF_O_EPC),
         .ExcCode_in(IF_O_ExcCode),
         .BD_in(IF_O_BD),
+        .valid_status_in(IF_O_valid_status),
         .exception_out(ID_I_exception),
         .EPC_out(ID_I_EPC),
         .ExcCode_out(ID_I_ExcCode),
-        .BD_out(ID_I_BD)
+        .BD_out(ID_I_BD),
+        .valid_status_out(IF_ID_O_valid_status)
     );
 
     // vvvvvvvvvvvvvvvvvvvvvvvv BEGIN OF ID STATE vvvvvvvvvvvvvvvvvvvvvvvv
@@ -333,7 +342,9 @@ module CPU(
         ) | (
             // For debugging convenience, freeze processor on syscall instructions
             (ID_I_Instruction[`opcode] === 6'b000000) & (ID_I_Instruction[`funct] === 6'b001100)
-        ) | (multiply_instruction & Multiply_busy)
+        ) | (
+            multiply_instruction & Multiply_busy
+        )
     );
 
     // Forward implementation
@@ -426,10 +437,12 @@ module CPU(
         .EPC_in(ID_O_EPC),
         .ExcCode_in(ID_O_ExcCode),
         .BD_in(ID_O_BD),
+        .valid_status_in(IF_ID_O_valid_status),
         .exception_out(EX_I_exception),
         .EPC_out(EX_I_EPC),
         .ExcCode_out(EX_I_ExcCode),
-        .BD_out(EX_I_BD)
+        .BD_out(EX_I_BD),
+        .valid_status_out(ID_EX_O_valid_status)
     );
 
     // vvvvvvvvvvvvvvvvvvvvvvvv BEGIN OF EX STATE vvvvvvvvvvvvvvvvvvvvvvvv  
@@ -532,16 +545,24 @@ module CPU(
         .EPC_in(EX_O_EPC),
         .ExcCode_in(EX_O_ExcCode),
         .BD_in(EX_O_BD),
+        .valid_status_in(ID_EX_O_valid_status),
         .exception_out(MEM_I_exception),
         .EPC_out(MEM_I_EPC),
         .ExcCode_out(MEM_I_ExcCode),
-        .BD_out(MEM_I_BD)
+        .BD_out(MEM_I_BD),
+        .valid_status_out(EX_MEM_O_valid_status)
     );
 
     // vvvvvvvvvvvvvvvvvvvvvvvv BEGIN OF MEM STATE vvvvvvvvvvvvvvvvvvvvvvvv
     wire        MEM_write_enable;
     wire[31:0]  MEM_write_data;
     wire[31:0]  MEM_write_address = {MEM_I_AO[31:2], 2'b00};
+    wire        MEM_eret;
+    wire[31:0]  MEM_real_AO;
+    EretDetector RDDecoder_eret_detector(
+        .instruction(MEM_I_Instruction),
+        .eret(MEM_eret)
+    );
     Memory MEM(
         .Inst(MEM_I_Instruction),
         .AO(MEM_I_AO),
@@ -575,6 +596,7 @@ module CPU(
         .EPC(MEM_O_EPC),
         .ExcCode(MEM_O_ExcCode),
         .BD(MEM_O_BD),
+        .valid_status(EX_MEM_O_valid_status),
         .interrupt_request(interrupt_request),
         .current_SR(CP0_SR_output),
         .current_Cause(CP0_Cause_output),
@@ -585,6 +607,12 @@ module CPU(
         .Cause_enable(CP0_Cause_enable),
         .new_EPC(CP0_EPC_input),
         .EPC_enable(CP0_EPC_enable)
+    );
+    MUX2#(32)MEM_real_AO_MUX(
+        .in1(MEM_O_AO),
+        .in2(CP0_SR_input),
+        .select(MEM_eret),
+        .out(MEM_real_AO)
     );
     assign macroscopic_PC = EX_MEM_O_PC;
     // Forward implementation
@@ -603,7 +631,7 @@ module CPU(
 
     MEM_WB mem_wb(
         .Inst_in(MEM_O_Instruction),
-        .AO_in(MEM_O_AO),
+        .AO_in(MEM_real_AO),
         .MO_in(MEM_O_MO),
         .PC_in(EX_MEM_O_PC),
         .clk(clk),

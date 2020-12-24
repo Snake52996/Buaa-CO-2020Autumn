@@ -7,19 +7,13 @@ module RDWriteDecoder(
     input[31:0] instruction,
     output      enable
 );
-    wire eret;
     wire store;
-    EretDetector RDWriteDecoder_eret_detector(
-        .instruction(instruction),
-        .eret(eret)
-    );
     LoadStoreInstructionDetector RDWriteDecoder_load_detector(
         .instruction(instruction),
         .store(store)
     );
     assign enable = ~(
         store |
-        eret |
         (instruction[`opcode] == 6'b000100) |                              // beq
         (instruction[`opcode] == 6'b000101) |                              // bne
         (instruction[`opcode] == 6'b000001 & ~instruction[20]) |           // bgez/bltz

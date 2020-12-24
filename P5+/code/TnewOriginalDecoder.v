@@ -23,6 +23,11 @@ module TnewOriginalDecoder(
     wire        mt;
     wire        mf_mt = mf | mt;
     wire[1:0]   relative_Tnew;
+    wire        eret;
+    EretDetector RDDecoder_eret_detector(
+        .instruction(Inst),
+        .eret(eret)
+    );
     LoadStoreInstructionDetector TnewDecoder_load_store_instruction_detector(
         .instruction(Inst),
         .load(load)
@@ -45,6 +50,8 @@ module TnewOriginalDecoder(
         (RT_URA !== 7'b0000000)
     ) ? MEM_Tnew : 2'b00;
     assign Tnew = (
+        eret
+    ) ? 2'b10 : (
         load   // load instructions
     ) ? 2'b10/* Generate after MEM */: (
         mf_mt

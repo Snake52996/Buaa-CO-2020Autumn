@@ -11,10 +11,12 @@ module ExceptionRegister(
     input[31:0]     EPC_in,
     input[4:0]      ExcCode_in,
     input           BD_in,
+    input           valid_status_in,
     output          exception_out,
     output[31:0]    EPC_out,
     output[4:0]     ExcCode_out,
-    output          BD_out
+    output          BD_out,
+    output          valid_status_out
 );
     // An exception has been thrown if and only if exception is 1
     // If exception is 0, other fields may still contains valid value but
@@ -30,5 +32,8 @@ module ExceptionRegister(
     );
     Register#(1,1'b0)BD(
         .D(BD_in), .clk(clk), .reset(reset), .enable(enable), .Q(BD_out)
+    );
+    Register#(1,1'b0)valid_status(
+        .D(valid_status_in), .clk(clk), .reset(reset), .enable(enable), .Q(valid_status_out)
     );
 endmodule
