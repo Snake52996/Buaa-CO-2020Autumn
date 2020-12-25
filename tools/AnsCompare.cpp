@@ -15,6 +15,7 @@ enum EXIT_STATUS{
 	UNKNOWN_EXCEPTION,
 	FILE_NOT_FOUND,
 	WRONG_ANSWER,
+	TOO_SHORT,
 	ILLEGAL_ARGUMENT
 };
 const regex REGISTER_LINE("^\\s*@(0x)?([0-9a-fA-F]{8})\\s*:\\s*\\$\\s*([0-9]+)\\s*<=\\s*(0x)?([0-9a-fA-F]{8})\\s*$");
@@ -69,6 +70,21 @@ void throwWrongAnswer(const char* comment){
 	printf("\e[31;1mWA\e[0m  %s\n", comment);
 	printf("%s\n", sentences[rand() % sentences_count]);
 	exit(EXIT_STATUS::WRONG_ANSWER);
+}
+void throwTooShort(const char* comment){
+	constexpr const char* const sentences[] = {
+		"Such moment always exists. DON'T GIVE UP!",
+		"Whoops, kind of hard, right?",
+		"Don't be disappointed my friend. Keep going.",
+		"Too hard for now? Maybe you just need a \"farther look\"! How about go for a walk?",
+		"Don't worry, I believe you can fix it next time!",
+		"Well...see you soon.",
+		"\e[1mDETERMINATION\e[0m"
+	};
+	constexpr int sentences_count = 7;
+	printf("\e[31;1mWA\e[0m  %s\n", comment);
+	printf("%s\n", sentences[rand() % sentences_count]);
+	exit(EXIT_STATUS::TOO_SHORT);
 }
 void throwUnknownException(const char* comment){
 	printf("\e[34;1mUKE\e[0m  %s\n", comment);
@@ -126,7 +142,7 @@ void compare(istream& out, istream& ans){
 		
 	}
 	if(!out.eof()) throwWrongAnswer("Your output is more than standard output.");
-	if(!ans.eof()) throwWrongAnswer("Your output is fewer than standard output.");
+	if(!ans.eof()) throwTooShort("Your output is fewer than standard output.");
 }
 int main(int argc, char** argv){
 	srand(time(NULL));
